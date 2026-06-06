@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Products | CloudVault</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="css/style.css" rel="stylesheet" />
+    <style>
+      .product-card {
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        border: none;
+      }
+      .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+      }
+      .product-image {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .product-image .placeholder {
+        font-size: 48px;
+        color: #ccc;
+      }
+      #productsGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+      }
+      .empty-state i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #ddd;
+      }
+      .cart-sidebar {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 350px;
+        height: 100vh;
+        background: white;
+        border-left: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
+        transform: translateX(100%);
+        transition: transform 0.3s;
+        z-index: 1000;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+      }
+      .cart-sidebar.open {
+        transform: translateX(0);
+      }
+      @media (max-width: 768px) {
+        #productsGrid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        .cart-sidebar {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body data-redirect-if-authenticated="false">
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top"
+    >
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="index.html">
+          <i class="bi bi-cloud-check"></i> CloudVault
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="products.html">Shop</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="login.html">Login</a>
+            </li>
+          </ul>
+        </div>
+        <button
+          class="btn btn-outline-primary position-relative ms-2"
+          type="button"
+          id="cartToggle"
+        >
+          <i class="bi bi-cart3"></i>
+          <span
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-primary"
+            id="cartBadge"
+            style="display: none"
+            >0</span
+          >
+        </button>
+      </div>
+    </nav>
+
+    <main class="py-5">
+      <div class="container-lg">
+        <div class="mb-5">
+          <h1 class="display-6 fw-bold mb-2">Our Products</h1>
+          <p class="text-secondary lead">
+            Discover our collection of quality products.
+          </p>
+        </div>
+
+        <div id="productsGrid" class="row g-4">
+          <!-- Products will be loaded here -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+      <div
+        class="p-4 border-bottom d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">Shopping Cart</h5>
+        <button class="btn-close" type="button" id="cartClose"></button>
+      </div>
+      <div class="flex-grow-1 overflow-auto p-4">
+        <div id="cartItems">
+          <!-- Cart items will be loaded here -->
+        </div>
+      </div>
+      <div class="border-top p-4">
+        <div class="d-flex justify-content-between mb-3">
+          <span class="fw-semibold">Total:</span>
+          <span class="fw-bold fs-5" id="cartTotal">$0.00</span>
+        </div>
+        <button class="btn btn-primary w-100 mb-2">Checkout</button>
+        <button class="btn btn-outline-secondary w-100" id="clearCartBtn">
+          Clear Cart
+        </button>
+      </div>
+    </div>
+
+    <!-- Backdrop for cart -->
+    <div
+      class="position-fixed w-100 h-100"
+      id="cartBackdrop"
+      style="
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 999;
+        top: 0;
+        left: 0;
+      "
+    ></div>
+
+    <footer class="bg-light border-top mt-5 py-4">
+      <div class="container-lg">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <h6 class="fw-bold">CloudVault</h6>
+            <p class="text-secondary small">
+              Your trusted file management solution.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <h6 class="fw-bold">Quick Links</h6>
+            <ul class="list-unstyled small">
+              <li>
+                <a href="#" class="text-secondary text-decoration-none"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-secondary text-decoration-none"
+                  >Support</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-secondary text-decoration-none"
+                  >Privacy</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h6 class="fw-bold">Contact</h6>
+            <p class="text-secondary small">support@cloudvault.com</p>
+          </div>
+        </div>
+        <hr />
+        <p class="text-secondary small text-center mb-0">
+          &copy; 2026 CloudVault. All rights reserved.
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/products.js"></script>
+    <script>
+      // Cart sidebar toggle
+      document.getElementById("cartToggle").addEventListener("click", () => {
+        document.getElementById("cartSidebar").classList.add("open");
+        document.getElementById("cartBackdrop").style.display = "block";
+        window.CloudVaultProducts.renderShoppingCart();
+      });
+
+      document.getElementById("cartClose").addEventListener("click", () => {
+        document.getElementById("cartSidebar").classList.remove("open");
+        document.getElementById("cartBackdrop").style.display = "none";
+      });
+
+      document.getElementById("cartBackdrop").addEventListener("click", () => {
+        document.getElementById("cartSidebar").classList.remove("open");
+        document.getElementById("cartBackdrop").style.display = "none";
+      });
+
+      document.getElementById("clearCartBtn").addEventListener("click", () => {
+        if (confirm("Clear cart?")) {
+          window.CloudVaultProducts.clearShoppingCart();
+          window.CloudVaultProducts.renderShoppingCart();
+        }
+      });
+
+      // Initialize page
+      window.CloudVaultProducts.initProductsPage();
+    </script>
+  </body>
+</html>

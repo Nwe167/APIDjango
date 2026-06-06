@@ -1,0 +1,105 @@
+<aside class="app-sidebar">
+  <div class="sidebar-inner glass-panel">
+    <div class="d-flex align-items-center justify-content-between d-lg-none">
+      <div class="d-flex align-items-center gap-2 fw-bold">
+        <span class="brand-mark"></span>
+        <span>CloudVault</span>
+      </div>
+      <button
+        class="btn btn-light btn-icon"
+        type="button"
+        data-sidebar-close
+        aria-label="Close sidebar"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="d-flex align-items-center gap-3 p-2 rounded-4 bg-body-tertiary">
+      <span class="avatar-circle" id="sidebarAvatar">U</span>
+      <div class="min-w-0">
+        <div class="fw-bold text-truncate" id="sidebarUserName">User</div>
+        <small
+          class="text-secondary text-truncate d-block"
+          id="sidebarUserEmail"
+          >user@example.com</small
+        >
+      </div>
+    </div>
+
+    <div class="d-grid gap-2">
+      <a class="btn btn-primary btn-lg rounded-4" href="/frontend/files/"
+        ><i class="bi bi-plus-lg me-2"></i>New file</a
+      >
+      <a class="btn btn-outline-primary rounded-4" href="/frontend/folders/"
+        ><i class="bi bi-folder-plus me-2"></i>New folder</a
+      >
+      <label
+        class="btn btn-outline-success rounded-4 mb-0"
+        id="sidebarUploadLabel"
+      >
+        <i class="bi bi-cloud-arrow-up me-2"></i>Upload to folder
+        <input type="file" id="sidebarUploadInput" class="d-none" multiple />
+      </label>
+    </div>
+
+    <nav class="nav flex-column sidebar-nav gap-1" id="sidebarNav">
+      <a class="nav-link" data-nav-item="dashboard" href="/frontend/dashboard/"
+        ><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a
+      >
+      <a class="nav-link" data-nav-item="files" href="/frontend/files/"
+        ><i class="bi bi-file-earmark me-2"></i>Files</a
+      >
+      <div>
+        <a class="nav-link d-flex align-items-center justify-content-between" data-nav-item="folders" href="/frontend/folders/" id="sidebarFoldersToggle">
+          <span><i class="bi bi-folder me-2"></i>Folders</span>
+          <i class="bi bi-chevron-right" id="sidebarFoldersChevron" style="font-size:0.75rem;transition:transform 0.2s"></i>
+        </a>
+        <div id="sidebarFolderList" style="display:none;padding-left:.5rem">
+          <div id="sidebarFolderListInner"></div>
+        </div>
+      </div>
+      <a class="nav-link" data-nav-item="shared" href="/frontend/shared/"
+        ><i class="bi bi-share me-2"></i>Shared</a
+      >
+      <a class="nav-link" data-nav-item="trash" href="/frontend/trash/"
+        ><i class="bi bi-trash3 me-2"></i>Trash</a
+      >
+      <a class="nav-link" data-nav-item="activity" href="/frontend/activity/"
+        ><i class="bi bi-clock-history me-2"></i>Activity</a
+      >
+      <a class="nav-link" data-nav-item="notifications" href="/frontend/notifications/"
+        ><i class="bi bi-bell me-2"></i>Notifications</a
+      >
+      <a class="nav-link" data-nav-item="settings" href="/frontend/settings/"
+        ><i class="bi bi-sliders me-2"></i>Settings</a
+      >
+      <a class="nav-link" data-nav-item="profile" href="/frontend/profile/"
+        ><i class="bi bi-person me-2"></i>Profile</a
+      >
+      <a class="nav-link" data-nav-item="admin-security" href="/frontend/admin-security/"
+        ><i class="bi bi-shield-lock me-2"></i>Security</a
+      >
+    </nav>
+
+    <div class="mt-auto p-3 rounded-4 bg-body-tertiary">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <div class="fw-bold">Storage</div>
+          <small class="text-secondary" id="sidebarStorageMeta"
+            >Loading usage</small
+          >
+        </div>
+        <span class="badge text-bg-primary" id="sidebarStorageBadge">0%</span>
+      </div>
+      <div class="progress">
+        <div
+          class="progress-bar"
+          id="sidebarStorageBar"
+          role="progressbar"
+          style="width: 0%"
+        ></div>
+      </div>
+    </div>
+  </div>
+</aside>

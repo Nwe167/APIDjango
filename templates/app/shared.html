@@ -1,0 +1,256 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared - Cloud Storage</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+</head>
+<body>
+<div class="d-flex" style="height:100vh">
+
+  <!-- Sidebar -->
+  <nav class="sidebar bg-light border-end" style="width:280px;overflow-y:auto;flex-shrink:0">
+    <div class="p-4">
+      <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white p-2 rounded" style="font-size:1.5rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center">
+          <i class="bi bi-cloud"></i>
+        </div>
+        <span class="ms-2 fw-bold" style="font-size:1.1rem">Drive</span>
+      </div>
+      <button class="btn btn-primary w-100 mb-4" onclick="window.location.href='/frontend/files/'">
+        <i class="bi bi-plus-lg"></i> Upload File
+      </button>
+      <div class="nav flex-column nav-pills gap-2">
+        <a href="/frontend/dashboard/" class="nav-link d-flex align-items-center"><i class="bi bi-house-fill me-3"></i><span>My Drive</span></a>
+        <a href="/frontend/files/" class="nav-link d-flex align-items-center"><i class="bi bi-file-earmark me-3"></i><span>Files</span></a>
+        <a href="/frontend/folders/" class="nav-link d-flex align-items-center"><i class="bi bi-folder me-3"></i><span>Folders</span></a>
+        <a href="/frontend/shared/" class="nav-link active d-flex align-items-center"><i class="bi bi-share me-3"></i><span>Shared</span></a>
+        <a href="/frontend/trash/" class="nav-link d-flex align-items-center"><i class="bi bi-trash me-3"></i><span>Trash</span></a>
+        <hr class="my-3" />
+        <a href="/frontend/activity/" class="nav-link d-flex align-items-center"><i class="bi bi-activity me-3"></i><span>Activity</span></a>
+        <a href="/frontend/notifications/" class="nav-link d-flex align-items-center"><i class="bi bi-bell me-3"></i><span>Notifications</span></a>
+        <a href="/frontend/settings/" class="nav-link d-flex align-items-center"><i class="bi bi-gear me-3"></i><span>Settings</span></a>
+        <a href="/frontend/profile/" class="nav-link d-flex align-items-center"><i class="bi bi-person me-3"></i><span>Profile</span></a>
+        <a href="/frontend/api/" class="nav-link d-flex align-items-center"><i class="bi bi-code-square me-3"></i><span>File API</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="flex-grow-1 d-flex flex-column" style="overflow:hidden">
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+      <div class="container-fluid px-4">
+        <div class="d-flex align-items-center flex-grow-1">
+          <span class="fw-semibold text-muted">Shared</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-link" id="themeToggle" title="Toggle dark mode">
+            <i class="bi bi-moon" id="themeIcon" style="font-size:1.2rem;color:#333"></i>
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-link dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle" style="font-size:1.3rem;color:#333"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/frontend/profile/">Profile</a></li>
+              <li><a class="dropdown-item" href="/frontend/settings/">Settings</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" id="logoutBtn" href="#">Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 overflow-auto">
+      <div class="container-fluid p-4">
+        <h5 class="fw-bold mb-1"><i class="bi bi-share me-2 text-primary"></i>Shared</h5>
+        <p class="text-muted mb-4 small">Files shared with you and files you have shared.</p>
+        <div id="sharedAlert" class="mb-3"></div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4">
+          <li class="nav-item">
+            <button class="nav-link active" id="tabSharedWithMe" onclick="switchTab('with-me')">Shared with me</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="tabMyShared" onclick="switchTab('my-shared')">Files I shared</button>
+          </li>
+        </ul>
+
+        <!-- Shared with me -->
+        <div id="panelWithMe">
+          <div class="card shadow-sm">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>Name</th><th>Shared by</th><th>Access</th><th>Size</th><th>Modified</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody id="sharedWithMeBody">
+                  <tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files I shared -->
+        <div id="panelMyShared" style="display:none">
+          <div class="card shadow-sm">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>File</th><th>Shared with</th><th>Access level</th><th>Shared on</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody id="mySharedBody">
+                  <tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalLabel">Preview</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="previewModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/api.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+<script>
+const tok = () => localStorage.getItem('cloudvault_token') || localStorage.getItem('auth_token') || '';
+const hdr = () => ({ Authorization: `Token ${tok()}` });
+if (!tok()) window.location.href = '/frontend/login/';
+
+function fmt(b){if(!b||b<=0)return'—';const u=['B','KB','MB','GB'];let v=b,i=0;while(v>=1024&&i<u.length-1){v/=1024;i++;}return`${v.toFixed(i?1:0)} ${u[i]}`;}
+function fmtDate(v){if(!v)return'—';return new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date(v));}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function roleLabel(r){return({reader:'Can view',commenter:'Can comment',writer:'Can edit',owner:'Owner'}[r]||r);}
+function fileIcon(mime){
+  if(!mime)return'bi-file-earmark';
+  if(mime==='folder')return'bi-folder-fill text-warning';
+  if(mime.startsWith('image/'))return'bi-file-earmark-image text-info';
+  if(mime.includes('pdf'))return'bi-file-earmark-pdf text-danger';
+  return'bi-file-earmark';
+}
+
+function showToast(msg,type='success'){
+  let c=document.getElementById('tc');
+  if(!c){c=document.createElement('div');c.id='tc';c.className='toast-container position-fixed top-0 end-0 p-3';document.body.appendChild(c);}
+  const id='t'+Date.now();
+  c.insertAdjacentHTML('beforeend',`<div id="${id}" class="toast align-items-center text-bg-${type} border-0"><div class="d-flex"><div class="toast-body">${esc(msg)}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`);
+  const el=document.getElementById(id);
+  new bootstrap.Toast(el,{delay:3500}).show();
+  el.addEventListener('hidden.bs.toast',()=>el.remove());
+}
+
+function switchTab(tab){
+  document.getElementById('panelWithMe').style.display=tab==='with-me'?'':'none';
+  document.getElementById('panelMyShared').style.display=tab==='my-shared'?'':'none';
+  document.getElementById('tabSharedWithMe').classList.toggle('active',tab==='with-me');
+  document.getElementById('tabMyShared').classList.toggle('active',tab==='my-shared');
+}
+
+async function loadSharedWithMe(){
+  const tbody=document.getElementById('sharedWithMeBody');
+  try {
+    const r=await axios.get('/api/v1/files/',{headers:hdr()});
+    const all=r.data.results||r.data||[];
+    const meR=await axios.get('/api/v1/users/profile/me/',{headers:hdr()}).catch(()=>null);
+    const myId=meR?.data?.user?.id;
+    const shared=all.filter(f=>f.owner!==myId&&f.owner_id!==myId);
+    if(!shared.length){tbody.innerHTML='<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-share d-block mb-2" style="font-size:2.5rem"></i>No files shared with you yet.</td></tr>';return;}
+    tbody.innerHTML=shared.map(f=>`
+    <tr>
+      <td><div class="d-flex align-items-center gap-2"><i class="bi ${fileIcon(f.mime_type)}" style="font-size:1.2rem"></i><span class="fw-semibold">${esc(f.name)}</span></div></td>
+      <td><small>${esc(f.owner_email||'—')}</small></td>
+      <td><span class="badge bg-primary">${esc(f.sharing_role||'Viewer')}</span></td>
+      <td>${fmt(f.size_bytes)}</td>
+      <td><small>${fmtDate(f.modified_time)}</small></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="previewShared('${f.id}','${esc(f.mime_type||'')}','${esc(f.name)}')"><i class="bi bi-eye"></i></button>
+        <a class="btn btn-sm btn-outline-primary me-1" href="/api/v1/files/${f.id}/download/" target="_blank"><i class="bi bi-download"></i></a>
+        <button class="btn btn-sm btn-outline-danger" onclick="removeSharedItem('${f.id}','${esc(f.name)}')"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`).join('');
+  } catch(e){tbody.innerHTML=`<tr><td colspan="6" class="text-center py-4 text-danger">Failed to load: ${esc(e.response?.data?.detail||e.message)}</td></tr>`;}
+}
+
+async function loadMyShared(){
+  const tbody=document.getElementById('mySharedBody');
+  try {
+    const r=await axios.get('/api/v1/permissions/',{headers:hdr()});
+    const perms=r.data.results||r.data||[];
+    if(!perms.length){tbody.innerHTML='<tr><td colspan="5" class="text-center py-5 text-muted"><i class="bi bi-share d-block mb-2" style="font-size:2.5rem"></i>You haven\'t shared any files yet.</td></tr>';return;}
+    tbody.innerHTML=perms.map(p=>`
+    <tr>
+      <td><span class="fw-semibold">${esc(p.file_name||p.file||'—')}</span></td>
+      <td><small>${esc(p.grantee_email||p.grantee_user_display||'—')}</small></td>
+      <td><span class="badge bg-info text-dark">${esc(roleLabel(p.role))}</span></td>
+      <td><small>${fmtDate(p.created_at)}</small></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-danger" onclick="removePermission('${p.id}','${esc(p.grantee_email||'')}')"><i class="bi bi-x-circle me-1"></i>Remove</button>
+      </td>
+    </tr>`).join('');
+  } catch(e){tbody.innerHTML=`<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load: ${esc(e.response?.data?.detail||e.message)}</td></tr>`;}
+}
+
+async function removePermission(permId,email){
+  if(!confirm(`Remove access for ${email}?`))return;
+  try{await axios.delete(`/api/v1/permissions/${permId}/`,{headers:hdr()});showToast('Access removed','success');loadMyShared();}
+  catch(e){showToast('Failed: '+(e.response?.data?.detail||e.message),'danger');}
+}
+
+async function removeSharedItem(fileId,name){
+  if(!confirm(`Remove "${name}" from your shared files?`))return;
+  try{await axios.post(`/api/v1/files/${fileId}/trash/`,{},{headers:hdr()});showToast('Shared item removed','success');loadSharedWithMe();}
+  catch(e){showToast('Failed: '+(e.response?.data?.detail||e.message),'danger');}
+}
+
+async function previewShared(id,mime,name){
+  const modal=document.getElementById('previewModal');
+  const body=document.getElementById('previewModalBody');
+  document.getElementById('previewModalLabel').textContent=name;
+  body.innerHTML='<div class="text-center py-5"><div class="spinner-border"></div></div>';
+  new bootstrap.Modal(modal).show();
+  try {
+    const r=await fetch(`/api/v1/files/${id}/preview/`,{headers:hdr()});
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const m=(mime||'').toLowerCase();
+    if(m.startsWith('image/'))body.innerHTML=`<img src="${url}" class="img-fluid d-block mx-auto" style="max-height:75vh">`;
+    else if(m.includes('pdf'))body.innerHTML=`<iframe src="${url}" style="width:100%;height:75vh;border:none"></iframe>`;
+    else if(m.startsWith('video/'))body.innerHTML=`<video controls class="w-100"><source src="${url}" type="${mime}"></video>`;
+    else body.innerHTML=`<div class="text-center py-4"><a class="btn btn-primary" href="/api/v1/files/${id}/download/" target="_blank"><i class="bi bi-download me-1"></i>Download</a></div>`;
+  } catch(e){body.innerHTML='<div class="text-center py-4 text-danger">Preview failed.</div>';}
+}
+
+document.getElementById('logoutBtn').addEventListener('click',e=>{e.preventDefault();localStorage.clear();window.location.href='/frontend/login/';});
+document.getElementById('themeToggle').addEventListener('click',()=>{const d=document.body.classList.toggle('dark-mode');localStorage.setItem('theme',d?'dark':'light');document.getElementById('themeIcon').className=d?'bi bi-sun':'bi bi-moon';});
+
+loadSharedWithMe();
+loadMyShared();
+</script>
+</body>
+</html>

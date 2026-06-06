@@ -1,0 +1,567 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Files - Cloud Storage</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="d-flex" style="height: 100vh">
+      <!-- Sidebar -->
+      <nav
+        class="sidebar bg-light border-end"
+        style="width: 280px; overflow-y: auto; flex-shrink: 0"
+      >
+        <div class="p-4">
+          <div class="d-flex align-items-center mb-4">
+            <div
+              class="bg-primary text-white p-2 rounded"
+              style="
+                font-size: 1.5rem;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <i class="bi bi-cloud"></i>
+            </div>
+            <span class="ms-2 fw-bold" style="font-size: 1.1rem">Drive</span>
+          </div>
+
+          <button class="btn btn-primary w-100 mb-4" id="uploadBtn">
+            <i class="bi bi-plus-lg"></i> Upload File
+          </button>
+
+          <div class="nav flex-column nav-pills gap-2">
+            <a
+              href="/frontend/dashboard/"
+              class="nav-link d-flex align-items-center"
+              data-page="dashboard"
+            >
+              <i class="bi bi-house-fill me-3"></i>
+              <span>My Drive</span>
+            </a>
+            <a
+              href="/frontend/files/"
+              class="nav-link active d-flex align-items-center"
+              data-page="files"
+            >
+              <i class="bi bi-file-earmark me-3"></i>
+              <span>Files</span>
+            </a>
+            <a
+              href="/frontend/folders/"
+              class="nav-link d-flex align-items-center"
+              data-page="folders"
+            >
+              <i class="bi bi-folder me-3"></i>
+              <span>Folders</span>
+            </a>
+            <a
+              href="/frontend/shared/"
+              class="nav-link d-flex align-items-center"
+              data-page="shared"
+            >
+              <i class="bi bi-share me-3"></i>
+              <span>Shared</span>
+            </a>
+            <a
+              href="/frontend/trash/"
+              class="nav-link d-flex align-items-center"
+              data-page="trash"
+            >
+              <i class="bi bi-trash me-3"></i>
+              <span>Trash</span>
+            </a>
+
+            <hr class="my-3" />
+
+            <a
+              href="/frontend/settings/"
+              class="nav-link d-flex align-items-center"
+              data-page="settings"
+            >
+              <i class="bi bi-gear me-3"></i>
+              <span>Settings</span>
+            </a>
+            <a
+              href="/frontend/profile/"
+              class="nav-link d-flex align-items-center"
+              data-page="profile"
+            >
+              <i class="bi bi-person me-3"></i>
+              <span>Profile</span>
+            </a>
+            <a
+              href="/frontend/api/"
+              class="nav-link d-flex align-items-center"
+              data-page="api"
+            >
+              <i class="bi bi-code-square me-3"></i>
+              <span>File API</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="flex-grow-1 d-flex flex-column" style="overflow: hidden">
+        <!-- Top Navbar -->
+        <nav
+          class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top"
+        >
+          <div class="container-fluid px-4">
+            <div class="d-flex align-items-center flex-grow-1">
+              <input
+                type="text"
+                class="form-control form-control-sm ms-3"
+                id="searchInput"
+                placeholder="Search files..."
+                style="max-width: 300px"
+              />
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-link position-relative"
+                  id="notificationsDropdown"
+                  data-bs-toggle="dropdown"
+                >
+                  <i
+                    class="bi bi-bell"
+                    style="font-size: 1.2rem; color: #333"
+                  ></i>
+                  <span
+                    id="notificationBadge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style="display: none"
+                    >0</span
+                  >
+                </button>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  id="notificationsList"
+                  style="min-width: 300px"
+                >
+                  <li>
+                    <a class="dropdown-item text-center text-muted" href="#"
+                      >Loading...</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                class="btn btn-sm btn-link"
+                id="themeToggle"
+                title="Toggle dark mode"
+              >
+                <i
+                  class="bi bi-moon"
+                  id="themeIcon"
+                  style="font-size: 1.2rem; color: #333"
+                ></i>
+              </button>
+
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-link dropdown-toggle"
+                  id="userMenu"
+                  data-bs-toggle="dropdown"
+                >
+                  <i
+                    class="bi bi-person-circle"
+                    style="font-size: 1.3rem; color: #333"
+                  ></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="/frontend/profile/"
+                      >Profile</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/frontend/settings/"
+                      >Settings</a
+                    >
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a class="dropdown-item" id="logoutBtn" href="#">Logout</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="flex-grow-1 overflow-auto">
+          <div class="container-fluid p-4">
+            <div class="row mb-4">
+              <div class="col">
+                <div class="d-flex gap-2 align-items-center">
+                  <h5 class="mb-0">
+                    Files <span id="filesTotalCount">(loading...)</span>
+                  </h5>
+                  <div class="btn-group" role="group">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary active"
+                      data-view-toggle="table"
+                      title="Table view"
+                    >
+                      <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      data-view-toggle="grid"
+                      title="Grid view"
+                    >
+                      <i class="bi bi-grid-3x2-gap"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-auto">
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="fileSearchInput"
+                  placeholder="Search files..."
+                  style="width: 250px"
+                />
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-sm btn-outline-primary" id="createFolderBtn">
+                  <i class="bi bi-folder-plus"></i> New Folder
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="uploadProgress" style="display: none; height: 4px; background-color: #0d6efd; width: 0%; transition: width 0.3s; position: fixed; top: 0; left: 0; z-index: 1000;"></div>
+
+            <!-- Breadcrumb Navigation -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb mb-0" id="breadcrumbNav">
+                    <li class="breadcrumb-item active">My Drive</li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Folder Tree Sidebar -->
+              <div class="col-md-3" style="display: none;">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <h6 class="card-title">Folders</h6>
+                    <div id="folderTree" class="small">
+                      <div class="text-muted">Loading folders...</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Main Content -->
+              <div class="col-md-9" style="width: 100%;">
+                <!-- Alert div for error messages -->
+                <div id="filesAlert"></div>
+
+                <!-- Table View -->
+                <div id="tableViewWrap" class="card shadow-sm">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Size</th>
+                          <th>Owner</th>
+                          <th>Status</th>
+                          <th>Starred</th>
+                          <th>Modified</th>
+                          <th class="text-end">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="filesTableBody">
+                        <tr>
+                          <td colspan="8" class="text-center text-muted py-4">
+                            <small>Loading files...</small>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Grid View -->
+                <div id="gridViewWrap" class="row g-3" style="display: none">
+                  <div id="filesGrid" class="w-100">
+                    <div class="col-12">
+                      <div class="text-center text-muted py-4">
+                        <small>Loading files...</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Files pagination" class="mt-4">
+                  <ul class="pagination justify-content-center" id="filesPagination">
+                    <li class="page-item disabled">
+                      <span class="page-link">No files</span>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden File Upload Input -->
+    <input type="file" id="fileUploadInput" style="display: none" multiple />
+
+    <!-- Upload Dropzone -->
+    <div id="uploadDropzone" style="display: none"></div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i>Upload Files</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Folder picker -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Upload to folder</label>
+              <select class="form-select" id="uploadFolderSelect">
+                <option value="">— My Drive (root) —</option>
+              </select>
+              <div class="form-text">Choose a folder or leave blank to upload to root.</div>
+            </div>
+            <!-- File picker -->
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Files</label>
+              <input type="file" class="form-control" id="uploadModalFileInput" multiple />
+            </div>
+            <!-- Drop zone -->
+            <div id="uploadModalDropzone" class="border border-2 border-dashed rounded p-4 text-center text-muted mt-2" style="cursor:pointer;border-style:dashed!important">
+              <i class="bi bi-cloud-arrow-up" style="font-size:2rem"></i>
+              <div class="mt-1 small">or drag &amp; drop files here</div>
+            </div>
+            <!-- Selected files list -->
+            <ul class="list-group list-group-flush mt-2" id="uploadFileList"></ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="uploadModalConfirm" disabled>
+              <i class="bi bi-cloud-arrow-up me-1"></i>Upload
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="previewModalLabel">File Preview</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="previewModalBody">
+            <div class="text-center text-muted py-5">
+              <small>Loading preview...</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="shareModalLabel">Share File</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="shareModalBody">
+            <div class="text-center text-muted py-5">
+              <small>Loading share options...</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="shareSaveBtn"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Modal -->
+    <div class="modal fade" id="inputModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="inputModalLabel">Enter Value</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="text"
+              class="form-control"
+              id="inputModalValue"
+              placeholder="Enter value..."
+            />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="inputModalOkBtn"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div
+      id="errorAlert"
+      class="alert alert-danger alert-dismissible fade show position-fixed"
+      style="top: 80px; right: 20px; z-index: 1050; display: none"
+      role="alert"
+    >
+      <strong>Error:</strong> <span id="errorMessage"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/api.js' %}?v={{ now.timestamp }}"></script>
+    <script src="{% static 'js/auth.js' %}?v=4"></script>
+    <script src="{% static 'js/files.js' %}?v={{ now.timestamp }}"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Authentication handled by files.js
+        if (typeof isAuthenticated === 'function' && !isAuthenticated()) {
+          window.location.href = "/frontend/login/";
+          return;
+        }
+
+        // Load notification handling if available
+        if (typeof loadNotifications === 'function') {
+          loadNotifications();
+        }
+
+        // Setup logout button if available
+        const logoutBtn = document.getElementById("logoutBtn");
+        if (logoutBtn && typeof logout === 'function') {
+          logoutBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            logout();
+          });
+        }
+      });
+
+        document
+          .getElementById("themeToggle")
+          .addEventListener("click", function () {
+            const isDark = document.body.classList.toggle("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            updateThemeIcon();
+          });
+
+        document
+          .getElementById("uploadBtn")
+          .addEventListener("click", function () {
+            // Let files.js handle this properly via the hidden file input
+            const uploadInput = document.querySelector('#fileUploadInput');
+            if (uploadInput) uploadInput.click();
+          });
+
+        // Initialize files page with advanced viewing
+        if (typeof initFilesPage === 'function') {
+          try {
+            initFilesPage();
+          } catch (error) {
+            console.error('Error initializing files page:', error);
+          }
+        }
+      });
+
+      function updateThemeIcon() {
+        const isDark = document.body.classList.contains("dark-mode");
+        document.getElementById("themeIcon").className = isDark
+          ? "bi bi-sun"
+          : "bi bi-moon";
+      }
+    </script>
+  </body>
+</html>

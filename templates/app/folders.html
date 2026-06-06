@@ -1,0 +1,988 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Folders - Cloud Storage</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+    <style>
+      .folders-toolbar {
+        background: linear-gradient(110deg, #f8fbff 0%, #eef8f6 100%);
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .folder-table-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .folders-table thead th {
+        color: #667085;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .folders-table tbody td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+      }
+      .folder-subtext {
+        color: #667085;
+        font-size: 0.78rem;
+      }
+      .folder-action-group .btn {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+      .folder-grid-card {
+        border-radius: 6px;
+      }
+      @media (max-width: 768px) {
+        .folder-page-header {
+          align-items: stretch !important;
+          flex-direction: column;
+        }
+        .folder-page-actions {
+          width: 100%;
+        }
+        .folder-page-actions input,
+        .folder-page-actions button {
+          width: 100% !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="d-flex" style="height: 100vh">
+      <!-- Sidebar -->
+      <nav
+        class="sidebar bg-light border-end"
+        style="width: 280px; overflow-y: auto; flex-shrink: 0"
+      >
+        <div class="p-4">
+          <div class="d-flex align-items-center mb-4">
+            <div
+              class="bg-primary text-white p-2 rounded"
+              style="
+                font-size: 1.5rem;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <i class="bi bi-cloud"></i>
+            </div>
+            <span class="ms-2 fw-bold" style="font-size: 1.1rem">Drive</span>
+          </div>
+
+          <button class="btn btn-primary w-100 mb-4" id="uploadBtn">
+            <i class="bi bi-plus-lg"></i> Upload File
+          </button>
+
+          <div class="nav flex-column nav-pills gap-2">
+            <a
+              href="/frontend/dashboard/"
+              class="nav-link d-flex align-items-center"
+              data-page="dashboard"
+            >
+              <i class="bi bi-house-fill me-3"></i>
+              <span>My Drive</span>
+            </a>
+            <a
+              href="/frontend/files/"
+              class="nav-link d-flex align-items-center"
+              data-page="files"
+            >
+              <i class="bi bi-file-earmark me-3"></i>
+              <span>Files</span>
+            </a>
+            <a
+              href="/frontend/folders/"
+              class="nav-link active d-flex align-items-center"
+              data-page="folders"
+            >
+              <i class="bi bi-folder me-3"></i>
+              <span>Folders</span>
+            </a>
+            <a
+              href="/frontend/shared/"
+              class="nav-link d-flex align-items-center"
+              data-page="shared"
+            >
+              <i class="bi bi-share me-3"></i>
+              <span>Shared</span>
+            </a>
+            <a
+              href="/frontend/trash/"
+              class="nav-link d-flex align-items-center"
+              data-page="trash"
+            >
+              <i class="bi bi-trash me-3"></i>
+              <span>Trash</span>
+            </a>
+
+            <hr class="my-3" />
+
+            <a
+              href="/frontend/settings/"
+              class="nav-link d-flex align-items-center"
+              data-page="settings"
+            >
+              <i class="bi bi-gear me-3"></i>
+              <span>Settings</span>
+            </a>
+            <a
+              href="/frontend/profile/"
+              class="nav-link d-flex align-items-center"
+              data-page="profile"
+            >
+              <i class="bi bi-person me-3"></i>
+              <span>Profile</span>
+            </a>
+            <a
+              href="/frontend/api/"
+              class="nav-link d-flex align-items-center"
+              data-page="api"
+            >
+              <i class="bi bi-code-square me-3"></i>
+              <span>File API</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="flex-grow-1 d-flex flex-column" style="overflow: hidden">
+        <!-- Top Navbar -->
+        <nav
+          class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top"
+        >
+          <div class="container-fluid px-4">
+            <div class="d-flex align-items-center flex-grow-1">
+              <input
+                type="text"
+                class="form-control form-control-sm ms-3"
+                id="searchInput"
+                placeholder="Search folders..."
+                style="max-width: 300px"
+              />
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-link position-relative"
+                  id="notificationsDropdown"
+                  data-bs-toggle="dropdown"
+                >
+                  <i
+                    class="bi bi-bell"
+                    style="font-size: 1.2rem; color: #333"
+                  ></i>
+                  <span
+                    id="notificationBadge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style="display: none"
+                    >0</span
+                  >
+                </button>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  id="notificationsList"
+                  style="min-width: 300px"
+                >
+                  <li>
+                    <a class="dropdown-item text-center text-muted" href="#"
+                      >Loading...</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                class="btn btn-sm btn-link"
+                id="themeToggle"
+                title="Toggle dark mode"
+              >
+                <i
+                  class="bi bi-moon"
+                  id="themeIcon"
+                  style="font-size: 1.2rem; color: #333"
+                ></i>
+              </button>
+
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-link dropdown-toggle"
+                  id="userMenu"
+                  data-bs-toggle="dropdown"
+                >
+                  <i
+                    class="bi bi-person-circle"
+                    style="font-size: 1.3rem; color: #333"
+                  ></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="/frontend/profile/"
+                      >Profile</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/frontend/settings/"
+                      >Settings</a
+                    >
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a class="dropdown-item" id="logoutBtn" href="#">Logout</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="flex-grow-1 overflow-auto folders-toolbar">
+          <div class="container-fluid p-4">
+            <div class="d-flex justify-content-between gap-3 mb-3 folder-page-header">
+              <div>
+                <div class="d-flex gap-2 align-items-center mb-3">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    id="folderBackBtn"
+                    title="Back"
+                    disabled
+                  >
+                    <i class="bi bi-arrow-left"></i>
+                  </button>
+                  <h5 class="mb-0">
+                    Folders <span id="foldersTotalCount">(loading...)</span>
+                  </h5>
+                  <div class="btn-group" role="group">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-secondary active"
+                      data-view-toggle="table"
+                      title="Table view"
+                    >
+                      <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      data-view-toggle="grid"
+                      title="Grid view"
+                    >
+                      <i class="bi bi-grid-3x2-gap"></i>
+                    </button>
+                  </div>
+                </div>
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb mb-0" id="breadcrumbNav">
+                    <li class="breadcrumb-item active">My Drive</li>
+                  </ol>
+                </nav>
+              </div>
+              <div class="d-flex gap-2 align-items-start folder-page-actions">
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="folderSearchInput"
+                  placeholder="Search folders..."
+                  style="width: 250px"
+                />
+                <button
+                  class="btn btn-sm btn-outline-primary text-nowrap"
+                  id="createFolderBtn"
+                >
+                  <i class="bi bi-folder-plus"></i> New Folder
+                </button>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Main Content -->
+              <div class="col-md-12" style="width: 100%">
+                <!-- Alert div for error messages -->
+                <div id="foldersAlert"></div>
+
+                <!-- Table View -->
+                <div id="tableViewWrap" class="folder-table-card bg-white shadow-sm">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0 folders-table">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Items</th>
+                          <th>Owner</th>
+                          <th>Status</th>
+                          <th>Modified</th>
+                          <th class="text-end">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="foldersTableBody">
+                        <tr>
+                          <td colspan="7" class="text-center text-muted py-4">
+                            <small>Loading folders...</small>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Grid View -->
+                <div id="gridViewWrap" style="display: none">
+                  <div id="foldersGrid" class="row g-3">
+                    <div class="col-12">
+                      <div class="text-center text-muted py-4">
+                        <small>Loading folders...</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Folders pagination" class="mt-4">
+                  <ul
+                    class="pagination justify-content-center"
+                    id="foldersPagination"
+                  >
+                    <li class="page-item disabled">
+                      <span class="page-link">No items</span>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden File Upload Input -->
+    <input type="file" id="fileUploadInput" style="display: none" multiple />
+
+    <!-- Create Folder Modal -->
+    <div class="modal fade" id="createFolderModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-folder-plus me-2"></i>Create New Folder
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Folder Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="folderNameInput"
+                placeholder="Enter folder name..."
+              />
+              <div class="form-text">Choose a name for your new folder.</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="createFolderConfirm"
+            >
+              <i class="bi bi-folder-plus me-1"></i>Create Folder
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="shareModalLabel">Share Folder</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="shareModalBody">
+            <div class="text-center text-muted py-5">
+              <small>Loading share options...</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="shareSaveBtn">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div
+      id="errorAlert"
+      class="alert alert-danger alert-dismissible fade show position-fixed"
+      style="top: 80px; right: 20px; z-index: 1050; display: none"
+      role="alert"
+    >
+      <strong>Error:</strong> <span id="errorMessage"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/api.js' %}?v={{ now.timestamp }}"></script>
+    <script src="{% static 'js/auth.js' %}?v=4"></script>
+
+    <script>
+      const FOLDERS_API_BASE = "/api/v1";
+      let allFiles = [];
+      let allFolders = [];
+      let currentFolderId = null;
+      let folderPath = [{ id: null, name: "My Drive" }];
+      const tok = () =>
+        localStorage.getItem("cloudvault_token") ||
+        localStorage.getItem("auth_token") ||
+        "";
+      const hdr = () => ({ Authorization: `Token ${tok()}` });
+
+      if (!tok()) {
+        window.location.href = "/frontend/login/";
+      }
+
+      function showToast(msg, type = "success") {
+        let container = document.getElementById("tc");
+        if (!container) {
+          container = document.createElement("div");
+          container.id = "tc";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          document.body.appendChild(container);
+        }
+        const id = "t" + Date.now();
+        container.insertAdjacentHTML(
+          "beforeend",
+          `<div id="${id}" class="toast align-items-center text-bg-${type} border-0"><div class="d-flex"><div class="toast-body">${escapeHtml(msg)}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`,
+        );
+        const el = document.getElementById(id);
+        new bootstrap.Toast(el, { delay: 3500 }).show();
+        el.addEventListener("hidden.bs.toast", () => el.remove());
+      }
+
+      function escapeHtml(str) {
+        const map = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        };
+        return String(str || "").replace(/[&<>"']/g, (m) => map[m]);
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes || bytes <= 0) return "—";
+        const units = ["B", "KB", "MB", "GB"];
+        let size = bytes;
+        let unitIndex = 0;
+        while (size >= 1024 && unitIndex < units.length - 1) {
+          size /= 1024;
+          unitIndex++;
+        }
+        return `${size.toFixed(unitIndex ? 1 : 0)} ${units[unitIndex]}`;
+      }
+
+      function formatDate(dateStr) {
+        if (!dateStr) return "—";
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(dateStr));
+      }
+
+      function normalizeId(value) {
+        return value === undefined || value === null || value === ""
+          ? null
+          : String(value);
+      }
+
+      function isSameId(a, b) {
+        return normalizeId(a) === normalizeId(b);
+      }
+
+      function isFolder(file) {
+        const mime = String(file?.mime_type || "").toLowerCase();
+        return mime === "folder" || mime.includes("folder");
+      }
+
+      function fileIcon(file) {
+        if (isFolder(file)) return "bi-folder-fill text-warning";
+        const name = String(file?.name || "").toLowerCase();
+        const mime = String(file?.mime_type || "").toLowerCase();
+        if (mime.includes("pdf") || name.endsWith(".pdf")) return "bi-file-earmark-pdf text-danger";
+        if (mime.includes("image")) return "bi-file-earmark-image text-success";
+        if (mime.includes("word") || name.endsWith(".doc") || name.endsWith(".docx")) return "bi-file-earmark-word text-primary";
+        if (mime.includes("excel") || name.endsWith(".xls") || name.endsWith(".xlsx")) return "bi-file-earmark-spreadsheet text-success";
+        if (mime.includes("zip") || name.endsWith(".zip")) return "bi-file-earmark-zip text-secondary";
+        return "bi-file-earmark text-secondary";
+      }
+
+      function typeLabel(file) {
+        if (isFolder(file)) return "Folder";
+        const name = String(file?.name || "");
+        const ext = name.includes(".") ? name.split(".").pop().toUpperCase() : "";
+        return ext ? `${ext} File` : "File";
+      }
+
+      function childCount(folderId) {
+        return allFiles.filter((file) => isSameId(file.parent, folderId)).length;
+      }
+
+      function updateBreadcrumb() {
+        const nav = document.getElementById("breadcrumbNav");
+        nav.innerHTML = folderPath
+          .map((folder, index) => {
+            const label = escapeHtml(folder.name);
+            if (index === folderPath.length - 1) {
+              return `<li class="breadcrumb-item active">${label}</li>`;
+            }
+            return `<li class="breadcrumb-item"><a href="#" data-folder-index="${index}">${label}</a></li>`;
+          })
+          .join("");
+        nav.querySelectorAll("[data-folder-index]").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            event.preventDefault();
+            const index = Number(link.dataset.folderIndex);
+            folderPath = folderPath.slice(0, index + 1);
+            currentFolderId = folderPath[folderPath.length - 1].id;
+            renderFolders();
+          });
+        });
+        document.getElementById("folderBackBtn").disabled =
+          folderPath.length <= 1;
+      }
+
+      async function loadFolders() {
+        try {
+          console.log("Loading folders from API...");
+          const response = await axios.get(`${FOLDERS_API_BASE}/files/`, {
+            headers: hdr(),
+          });
+          console.log("Files API response:", response.data);
+
+          // Handle both paginated and non-paginated responses
+          allFiles = response.data.results || response.data || [];
+
+          // Ensure we have an array
+          if (!Array.isArray(allFiles)) {
+            allFiles = [];
+          }
+
+          console.log("Total files:", allFiles.length);
+
+          // Filter for folders - check mime_type contains 'folder'
+          allFolders = allFiles.filter(isFolder);
+
+          console.log("Filtered folders:", allFolders);
+          renderFolders();
+        } catch (error) {
+          console.error("Error loading folders:", error.response || error);
+          showToast(
+            "Failed to load folders: " +
+              (error.response?.data?.detail || error.message),
+            "danger",
+          );
+          // Still render to clear loading state even on error
+          allFolders = [];
+          renderFolders();
+        }
+      }
+
+      function renderFolders() {
+        const tbody = document.getElementById("foldersTableBody");
+        const grid = document.getElementById("foldersGrid");
+        const query = document
+          .getElementById("folderSearchInput")
+          .value.trim()
+          .toLowerCase();
+        const visibleItems = allFiles.filter((item) => {
+          const parentMatches = isSameId(item.parent, currentFolderId);
+          const searchMatches =
+            !query || String(item.name || "").toLowerCase().includes(query);
+          return parentMatches && searchMatches;
+        });
+        visibleItems.sort((a, b) => {
+          if (isFolder(a) !== isFolder(b)) return isFolder(a) ? -1 : 1;
+          return String(a.name || "").localeCompare(String(b.name || ""));
+        });
+        updateBreadcrumb();
+
+        console.log(
+          "renderFolders called. visible item count:",
+          visibleItems ? visibleItems.length : 0,
+        );
+
+        document.getElementById("foldersTotalCount").textContent =
+          `(${visibleItems.length} ${visibleItems.length === 1 ? "item" : "items"})`;
+
+        if (!visibleItems || visibleItems.length === 0) {
+          console.log("No items, showing empty state");
+          const emptyTableHTML =
+            '<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-folder d-block mb-2" style="font-size:2.5rem"></i><div class="mt-2">No items yet.</div></td></tr>';
+          tbody.innerHTML = emptyTableHTML;
+
+          const emptyGridHTML =
+            '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-folder d-block mb-2" style="font-size:2.5rem"></i><div class="mt-2">No items yet.</div></div>';
+          grid.innerHTML = emptyGridHTML;
+          return;
+        }
+
+        console.log("Rendering", visibleItems.length, "items");
+
+        // Table view
+        const tableRows = visibleItems
+          .map((item) => {
+            const folder = isFolder(item);
+            const items = folder ? childCount(item.id) : null;
+            const name = escapeHtml(item.name);
+            const id = escapeHtml(item.id);
+            const mime = escapeHtml(item.mime_type || "");
+            return `<tr>
+            <td>
+              <button class="btn btn-link p-0 text-start text-decoration-none" ${folder ? `onclick="openFolder('${id}', '${name}')"` : `onclick="previewItem('${id}', '${mime}', '${name}')"`}>
+                <div class="d-flex align-items-start gap-2">
+                  <i class="bi ${fileIcon(item)} mt-1"></i>
+                  <div>
+                    <div class="fw-semibold text-dark">${name}</div>
+                    <div class="folder-subtext">${folder ? "Open in this page" : "Uploaded file"}</div>
+                  </div>
+                </div>
+              </button>
+            </td>
+            <td>${typeLabel(item)}</td>
+            <td>${folder ? `${items} ${items === 1 ? "item" : "items"}` : formatBytes(item.size_bytes)}</td>
+            <td><small>${escapeHtml(item.owner_email || "Unknown")}</small></td>
+            <td><span class="badge bg-success">Active</span></td>
+            <td><small>${formatDate(item.modified_time)}</small></td>
+            <td class="text-end folder-action-group">
+              <button class="btn btn-sm btn-outline-secondary" onclick="${folder ? `openFolder('${id}', '${name}')` : `previewItem('${id}', '${mime}', '${name}')`}" title="${folder ? "Open" : "Preview"}"><i class="bi bi-eye"></i></button>
+              ${folder ? `<button class="btn btn-sm btn-outline-primary" onclick="openFolder('${id}', '${name}')" title="Open folder"><i class="bi bi-folder2-open"></i></button>` : `<a class="btn btn-sm btn-outline-primary" href="${FOLDERS_API_BASE}/files/${id}/download/" target="_blank" title="Download"><i class="bi bi-download"></i></a>`}
+              <button class="btn btn-sm btn-outline-success" onclick="shareFolder('${id}', '${name}')" title="Share"><i class="bi bi-share"></i></button>
+              <button class="btn btn-sm btn-outline-secondary" onclick="renameItem('${id}', '${name}')" title="Rename"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteFolder('${id}', '${name}')" title="Delete"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>`;
+          })
+          .join("");
+        tbody.innerHTML = tableRows;
+
+        // Grid view
+        const gridCards = visibleItems
+          .map((item) => {
+            const folder = isFolder(item);
+            const items = folder ? childCount(item.id) : null;
+            const name = escapeHtml(item.name);
+            const id = escapeHtml(item.id);
+            const mime = escapeHtml(item.mime_type || "");
+            return `<div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card h-100 shadow-sm folder-grid-card" style="cursor:pointer; transition: all 0.3s ease;">
+              <div class="card-body text-center">
+                <i class="bi ${fileIcon(item)}" style="font-size:3rem"></i>
+                <h6 class="card-title mt-3 text-truncate">${name}</h6>
+                <p class="card-text small text-muted mb-1">${folder ? `${items} ${items === 1 ? "item" : "items"}` : formatBytes(item.size_bytes)}</p>
+                <p class="card-text small text-muted">${formatDate(item.modified_time)}</p>
+                <div class="btn-group btn-group-sm w-100" role="group">
+                  <button class="btn btn-outline-primary" onclick="${folder ? `openFolder('${id}', '${name}')` : `previewItem('${id}', '${mime}', '${name}')`}" title="${folder ? "Open" : "Preview"}"><i class="bi ${folder ? "bi-folder2-open" : "bi-eye"}"></i></button>
+                  <button class="btn btn-outline-secondary" onclick="shareFolder('${id}', '${name}')" title="Share"><i class="bi bi-share"></i></button>
+                  <button class="btn btn-outline-danger" onclick="deleteFolder('${id}', '${name}')" title="Delete"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+          })
+          .join("");
+        grid.innerHTML = gridCards;
+
+        console.log("renderFolders complete");
+      }
+
+      function openFolder(folderId, folderName) {
+        currentFolderId = normalizeId(folderId);
+        folderPath.push({ id: currentFolderId, name: folderName });
+        renderFolders();
+      }
+
+      async function renameItem(itemId, itemName) {
+        const name = prompt("Rename item", itemName);
+        if (!name || !name.trim() || name.trim() === itemName) return;
+        try {
+          await axios.patch(
+            `${FOLDERS_API_BASE}/files/${itemId}/`,
+            { name: name.trim() },
+            { headers: hdr() },
+          );
+          showToast("Item renamed", "success");
+          const pathItem = folderPath.find((folder) => isSameId(folder.id, itemId));
+          if (pathItem) pathItem.name = name.trim();
+          await loadFolders();
+        } catch (error) {
+          showToast(
+            error.response?.data?.detail || "Failed to rename item",
+            "danger",
+          );
+        }
+      }
+
+      function previewItem(itemId, mimeType, itemName) {
+        if (String(mimeType || "").toLowerCase().includes("folder")) {
+          openFolder(itemId, itemName);
+          return;
+        }
+        window.open(`${FOLDERS_API_BASE}/files/${itemId}/preview/`, "_blank");
+      }
+
+      function shareFolder(folderId, folderName) {
+        document.getElementById("shareModalLabel").textContent =
+          `Share "${folderName}"`;
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById("shareModal"),
+        ).show();
+      }
+
+      async function deleteFolder(folderId, folderName) {
+        if (
+          !confirm(`Delete folder "${folderName}"? This will move it to trash.`)
+        )
+          return;
+        try {
+          await axios.post(
+            `${FOLDERS_API_BASE}/files/${folderId}/trash/`,
+            {},
+            { headers: hdr() },
+          );
+          showToast("Folder moved to trash", "success");
+          await loadFolders();
+        } catch (error) {
+          showToast(
+            error.response?.data?.detail || "Failed to delete folder",
+            "danger",
+          );
+        }
+      }
+
+      async function uploadFilesToCurrentFolder(files) {
+        const selectedFiles = Array.from(files || []);
+        if (!selectedFiles.length) return;
+
+        if (!currentFolderId) {
+          const uploadRoot = confirm("No folder is open. Upload to My Drive root?");
+          if (!uploadRoot) return;
+        }
+
+        const form = new FormData();
+        selectedFiles.forEach((file) => form.append("files", file));
+        if (currentFolderId) form.append("parent", currentFolderId);
+
+        const uploadBtn = document.getElementById("uploadBtn");
+        const originalHtml = uploadBtn.innerHTML;
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+
+        try {
+          await axios.post(`${FOLDERS_API_BASE}/files/upload_multiple/`, form, {
+            headers: { Authorization: `Token ${tok()}` },
+          });
+          showToast(
+            `${selectedFiles.length} file(s) uploaded ${
+              currentFolderId ? "to this folder" : "to My Drive"
+            }`,
+            "success",
+          );
+          await loadFolders();
+        } catch (error) {
+          showToast(
+            error.response?.data?.detail || "Failed to upload file",
+            "danger",
+          );
+        } finally {
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = originalHtml;
+          document.getElementById("fileUploadInput").value = "";
+        }
+      }
+
+      document
+        .getElementById("createFolderBtn")
+        .addEventListener("click", () => {
+          document.getElementById("folderNameInput").value = "";
+          bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("createFolderModal"),
+          ).show();
+        });
+
+      document
+        .getElementById("createFolderConfirm")
+        .addEventListener("click", async () => {
+          const name = document.getElementById("folderNameInput").value.trim();
+          if (!name) {
+            showToast("Please enter a folder name", "warning");
+            return;
+          }
+          try {
+            const payload = { name, mime_type: "folder" };
+            if (currentFolderId) payload.parent = currentFolderId;
+            await axios.post(
+              `${FOLDERS_API_BASE}/files/`,
+              payload,
+              { headers: hdr() },
+            );
+            showToast("Folder created successfully", "success");
+            bootstrap.Modal.getInstance(
+              document.getElementById("createFolderModal"),
+            ).hide();
+            await loadFolders();
+          } catch (error) {
+            showToast(
+              error.response?.data?.detail || "Failed to create folder",
+              "danger",
+            );
+          }
+        });
+
+      document
+        .getElementById("folderNameInput")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("createFolderConfirm").click();
+          }
+        });
+
+      document.getElementById("uploadBtn").addEventListener("click", () => {
+        document.getElementById("fileUploadInput").click();
+      });
+
+      document
+        .getElementById("fileUploadInput")
+        .addEventListener("change", (event) => {
+          uploadFilesToCurrentFolder(event.target.files);
+        });
+
+      document.getElementById("folderBackBtn").addEventListener("click", () => {
+        if (folderPath.length <= 1) return;
+        folderPath.pop();
+        currentFolderId = folderPath[folderPath.length - 1].id;
+        renderFolders();
+      });
+
+      document
+        .getElementById("folderSearchInput")
+        .addEventListener("input", renderFolders);
+
+      // View toggle
+      document.querySelectorAll("[data-view-toggle]").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const viewType = this.dataset.viewToggle;
+          document
+            .querySelectorAll("[data-view-toggle]")
+            .forEach((b) => {
+              b.classList.remove("active", "btn-secondary");
+              b.classList.add("btn-outline-secondary");
+            });
+          this.classList.add("active");
+          this.classList.remove("btn-outline-secondary");
+          this.classList.add("btn-secondary");
+          document.getElementById("tableViewWrap").style.display =
+            viewType === "table" ? "" : "none";
+          document.getElementById("gridViewWrap").style.display =
+            viewType === "grid" ? "" : "none";
+        });
+      });
+
+      // Logout button
+      document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("cloudvault_token");
+        localStorage.removeItem("auth_token");
+        window.location.href = "/frontend/login/";
+      });
+
+      // Theme toggle
+      document
+        .getElementById("themeToggle")
+        .addEventListener("click", function () {
+          const isDark = document.body.classList.toggle("dark-mode");
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+          document.getElementById("themeIcon").className = isDark
+            ? "bi bi-sun"
+            : "bi bi-moon";
+        });
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Initializing folders page...");
+        loadFolders();
+      });
+
+      // Fallback - call immediately if DOM is already loaded
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadFolders);
+      } else {
+        console.log("DOM already loaded, initializing folders now...");
+        loadFolders();
+      }
+    </script>
+  </body>
+</html>

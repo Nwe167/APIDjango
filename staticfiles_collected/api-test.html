@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Testing Console | CloudVault</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: "Courier New", monospace;
+      }
+      .console-output {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #444;
+      }
+      .console-line {
+        margin: 4px 0;
+        word-break: break-all;
+      }
+      .console-success {
+        color: #4ec9b0;
+      }
+      .console-error {
+        color: #f48771;
+      }
+      .console-info {
+        color: #9cdcfe;
+      }
+      .console-warning {
+        color: #dcdcaa;
+      }
+      .test-card {
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: white;
+        border-radius: 6px;
+      }
+      .test-card.success {
+        border-left-color: #28a745;
+        background: #f0f7f0;
+      }
+      .test-card.error {
+        border-left-color: #dc3545;
+        background: #f7f0f0;
+      }
+      .test-card.warning {
+        border-left-color: #ffc107;
+        background: #f7f5f0;
+      }
+      button.test-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+      code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+      .badge {
+        font-family: "Arial", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark border-bottom sticky-top">
+      <div class="container-lg">
+        <a class="navbar-brand fw-bold" href="dashboard.html">
+          <i class="bi bi-bug"></i> CloudVault API Testing Console
+        </a>
+        <span class="text-white-50 small"
+          >Backend: <code class="text-white">http://127.0.0.1:8000</code></span
+        >
+      </div>
+    </nav>
+
+    <main class="py-4">
+      <div class="container-lg">
+        <div class="row g-4">
+          <!-- Control Panel -->
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title mb-3">
+                  <i class="bi bi-gear"></i> Control Panel
+                </h5>
+
+                <div class="mb-3">
+                  <label class="form-label">API Base URL</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="apiBaseInput"
+                    value="http://127.0.0.1:8000/api/v1"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Auth Token</label>
+                  <div class="input-group input-group-sm">
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="authTokenInput"
+                      placeholder="Token from localStorage"
+                    />
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      id="copyTokenBtn"
+                      title="Copy token"
+                    >
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      id="clearTokenBtn"
+                      title="Clear token"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Test Credentials</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm mb-2"
+                    id="testUsername"
+                    placeholder="Username"
+                  />
+                  <input
+                    type="password"
+                    class="form-control form-control-sm"
+                    id="testPassword"
+                    placeholder="Password"
+                  />
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button class="btn btn-primary btn-sm" id="loginBtn">
+                    <i class="bi bi-lock"></i> Login
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+              <div class="card-body">
+                <h5 class="card-title mb-3">
+                  <i class="bi bi-tools"></i> Quick Tests
+                </h5>
+                <div class="d-grid gap-2">
+                  <button
+                    class="btn btn-outline-primary btn-sm test-btn"
+                    data-test="health"
+                  >
+                    Health Check
+                  </button>
+                  <button
+                    class="btn btn-outline-primary btn-sm test-btn"
+                    data-test="auth"
+                  >
+                    Check Auth
+                  </button>
+                  <button
+                    class="btn btn-outline-primary btn-sm test-btn"
+                    data-test="endpoints"
+                  >
+                    All Endpoints
+                  </button>
+                  <button
+                    class="btn btn-outline-primary btn-sm test-btn"
+                    data-test="clear"
+                  >
+                    Clear Console
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Panel -->
+          <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title mb-3">
+                  <i class="bi bi-terminal"></i> Console Output
+                </h5>
+                <div class="console-output" id="consoleOutput">
+                  <div class="console-line console-info">
+                    [INFO] Console ready. Use buttons to test API endpoints.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Endpoint Tests -->
+            <div class="mt-4">
+              <h5 class="mb-3">
+                <i class="bi bi-list-check"></i> Endpoint Tests
+              </h5>
+
+              <div class="test-card">
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <div>
+                    <strong>Products API</strong>
+                    <div class="badge badge-soft-info">GET</div>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline-primary test-btn"
+                    data-endpoint="products"
+                  >
+                    Test
+                  </button>
+                </div>
+                <p class="text-secondary small mb-2">
+                  <code>/apiproducts/products/</code>
+                </p>
+                <small class="text-muted">Fetch all available products</small>
+              </div>
+
+              <div class="test-card">
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <div>
+                    <strong>Files API</strong>
+                    <div class="badge badge-soft-info">GET</div>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline-primary test-btn"
+                    data-endpoint="files"
+                  >
+                    Test
+                  </button>
+                </div>
+                <p class="text-secondary small mb-2"><code>/files/</code></p>
+                <small class="text-muted"
+                  >Fetch all files (requires authentication)</small
+                >
+              </div>
+
+              <div class="test-card">
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <div>
+                    <strong>User Profile API</strong>
+                    <div class="badge badge-soft-info">GET</div>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline-primary test-btn"
+                    data-endpoint="profile"
+                  >
+                    Test
+                  </button>
+                </div>
+                <p class="text-secondary small mb-2">
+                  <code>/users/profile/me/</code>
+                </p>
+                <small class="text-muted"
+                  >Get current user profile (requires authentication)</small
+                >
+              </div>
+
+              <div class="test-card">
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <div>
+                    <strong>Activity Feed API</strong>
+                    <div class="badge badge-soft-info">GET</div>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline-primary test-btn"
+                    data-endpoint="activity"
+                  >
+                    Test
+                  </button>
+                </div>
+                <p class="text-secondary small mb-2"><code>/activity/</code></p>
+                <small class="text-muted"
+                  >Get activity feed (requires authentication)</small
+                >
+              </div>
+
+              <div class="test-card">
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <div>
+                    <strong>Notifications API</strong>
+                    <div class="badge badge-soft-info">GET</div>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline-primary test-btn"
+                    data-endpoint="notifications"
+                  >
+                    Test
+                  </button>
+                </div>
+                <p class="text-secondary small mb-2">
+                  <code>/users/notifications/</code>
+                </p>
+                <small class="text-muted"
+                  >Get user notifications (requires authentication)</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const API_BASE = document.getElementById("apiBaseInput").value;
+      const AUTH_ENDPOINT = "http://127.0.0.1:8000/api-token-auth/";
+      let currentToken = localStorage.getItem("cloudvault_token") || "";
+
+      function log(message, type = "info") {
+        const output = document.getElementById("consoleOutput");
+        const timestamp = new Date().toLocaleTimeString();
+        const line = document.createElement("div");
+        line.className = `console-line console-${type}`;
+        line.textContent = `[${timestamp}] ${message}`;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function clearConsole() {
+        document.getElementById("consoleOutput").innerHTML = "";
+        log("Console cleared", "info");
+      }
+
+      async function testEndpoint(endpoint, path, requiresAuth = false) {
+        try {
+          log(`Testing ${endpoint}: GET ${path}...`, "info");
+
+          if (requiresAuth && !currentToken) {
+            log(
+              `${endpoint} requires authentication. Please login first.`,
+              "warning",
+            );
+            return;
+          }
+
+          const headers = {};
+          if (currentToken) {
+            headers.Authorization = currentToken.includes(".")
+              ? `Bearer ${currentToken}`
+              : `Token ${currentToken}`;
+          }
+
+          const response = await axios.get(`${API_BASE}${path}`, { headers });
+          const data = response.data;
+
+          log(`✓ ${endpoint} SUCCESS (${response.status})`, "success");
+
+          if (data.results) {
+            log(`  Results: ${data.results.length} items`, "success");
+            if (data.results.length > 0) {
+              log(
+                `  Sample: ${JSON.stringify(data.results[0]).substring(0, 100)}...`,
+                "info",
+              );
+            }
+          } else if (Array.isArray(data)) {
+            log(`  Array: ${data.length} items`, "success");
+          } else {
+            log(
+              `  Response: ${JSON.stringify(data).substring(0, 150)}...`,
+              "info",
+            );
+          }
+        } catch (error) {
+          const status = error.response?.status || "unknown";
+          const message = error.response?.data?.detail || error.message;
+          log(`✗ ${endpoint} FAILED (${status}): ${message}`, "error");
+        }
+      }
+
+      // Update token input
+      document.getElementById("authTokenInput").value = currentToken;
+
+      // Control Panel Events
+      document
+        .getElementById("loginBtn")
+        .addEventListener("click", async () => {
+          const username = document.getElementById("testUsername").value.trim();
+          const password = document.getElementById("testPassword").value.trim();
+
+          if (!username || !password) {
+            log("Please enter username and password", "warning");
+            return;
+          }
+
+          try {
+            log(`Attempting login for user: ${username}...`, "info");
+            const response = await axios.post(AUTH_ENDPOINT, {
+              username,
+              password,
+            });
+            currentToken = response.data.token || response.data.access;
+            localStorage.setItem("cloudvault_token", currentToken);
+            document.getElementById("authTokenInput").value = currentToken;
+            log(
+              `✓ Login successful! Token: ${currentToken.substring(0, 20)}...`,
+              "success",
+            );
+          } catch (error) {
+            log(
+              `✗ Login failed: ${error.response?.data?.detail || error.message}`,
+              "error",
+            );
+          }
+        });
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        currentToken = "";
+        localStorage.removeItem("cloudvault_token");
+        document.getElementById("authTokenInput").value = "";
+        log("Logged out", "success");
+      });
+
+      document.getElementById("copyTokenBtn").addEventListener("click", () => {
+        if (currentToken) {
+          navigator.clipboard.writeText(currentToken);
+          log("Token copied to clipboard", "success");
+        }
+      });
+
+      document.getElementById("clearTokenBtn").addEventListener("click", () => {
+        currentToken = "";
+        localStorage.removeItem("cloudvault_token");
+        document.getElementById("authTokenInput").value = "";
+        log("Token cleared", "info");
+      });
+
+      // Quick Tests
+      document
+        .getElementById("consoleOutput")
+        .addEventListener("click", (e) => {
+          if (e.target.classList.contains("test-btn")) {
+            e.preventDefault();
+          }
+        });
+
+      document.querySelectorAll("[data-test]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const test = btn.getAttribute("data-test");
+
+          if (test === "clear") {
+            clearConsole();
+          } else if (test === "health") {
+            log(`Server: ${API_BASE}`, "info");
+            log(
+              `Token: ${currentToken ? "✓ Present" : "✗ Not set"}`,
+              currentToken ? "success" : "warning",
+            );
+          } else if (test === "auth") {
+            if (currentToken) {
+              log(`✓ Auth token is set`, "success");
+              log(
+                `  Format: ${currentToken.includes(".") ? "JWT (Bearer)" : "Token-based"}`,
+                "info",
+              );
+            } else {
+              log(`✗ No auth token. Please login first.`, "error");
+            }
+          } else if (test === "endpoints") {
+            log("Testing all major endpoints...", "info");
+            await testEndpoint("Products", "/apiproducts/products/", false);
+            await testEndpoint("Files", "/files/", true);
+            await testEndpoint("Profile", "/users/profile/me/", true);
+            await testEndpoint("Activity", "/activity/", true);
+            await testEndpoint("Notifications", "/users/notifications/", true);
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-endpoint]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const endpoint = btn.getAttribute("data-endpoint");
+
+          if (endpoint === "products") {
+            await testEndpoint("Products", "/apiproducts/products/", false);
+          } else if (endpoint === "files") {
+            await testEndpoint("Files", "/files/", true);
+          } else if (endpoint === "profile") {
+            await testEndpoint("Profile", "/users/profile/me/", true);
+          } else if (endpoint === "activity") {
+            await testEndpoint("Activity", "/activity/", true);
+          } else if (endpoint === "notifications") {
+            await testEndpoint("Notifications", "/users/notifications/", true);
+          }
+        });
+      });
+
+      // Initial log
+      log("API Testing Console initialized", "success");
+      log(`Backend: ${API_BASE}`, "info");
+    </script>
+  </body>
+</html>
+
+
+datatype arrayName[size];

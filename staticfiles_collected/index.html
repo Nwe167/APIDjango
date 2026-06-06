@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CloudVault | Smart File Workspace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <main class="auth-shell" style="grid-template-columns: 1.2fr 0.8fr;">
+        <section class="auth-visual position-relative overflow-hidden">
+            <div class="position-relative z-1">
+                <div class="auth-hero-badge mb-4"><span class="brand-mark"></span> Cloud storage for modern teams</div>
+                <h1 class="display-4 fw-black mb-3">Keep files, folders, comments, and sharing in one clean workspace.</h1>
+                <p class="lead text-white-50 mb-4">A Google Drive style frontend for your Django REST backend with fast search, dashboards, sharing, and secure admin tools.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a class="btn btn-light btn-lg rounded-4" href="login.html">Sign in</a>
+                    <a class="btn btn-outline-light btn-lg rounded-4" href="dashboard.html">Open dashboard</a>
+                </div>
+            </div>
+            <div class="hero-grid position-relative z-1">
+                <div class="hero-tile">
+                    <div class="fw-bold mb-1">Responsive dashboard</div>
+                    <small class="text-white-50">Metrics, charts, and activity in one view.</small>
+                </div>
+                <div class="hero-tile">
+                    <div class="fw-bold mb-1">Collaboration</div>
+                    <small class="text-white-50">Comments, permissions, and share links.</small>
+                </div>
+                <div class="hero-tile">
+                    <div class="fw-bold mb-1">Security</div>
+                    <small class="text-white-50">Audit logs, spam flags, and DLP alerts.</small>
+                </div>
+                <div class="hero-tile">
+                    <div class="fw-bold mb-1">Dark mode</div>
+                    <small class="text-white-50">Theme toggle with persistent storage.</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="auth-panel">
+            <div class="auth-card text-center">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle bg-primary bg-opacity-10 text-primary" style="width:72px;height:72px;">
+                    <i class="bi bi-cloud-arrow-up fs-1"></i>
+                </div>
+                <h2 class="fw-black mb-2">CloudVault</h2>
+                <p class="text-secondary mb-4">Open the full workspace or sign in to start managing storage.</p>
+                <div class="d-grid gap-3">
+                    <a class="btn btn-primary btn-lg rounded-4" href="login.html">Sign in</a>
+                    <a class="btn btn-outline-primary btn-lg rounded-4" href="register.html">Create account</a>
+                    <a class="btn btn-light btn-lg rounded-4" href="dashboard.html">Demo dashboard</a>
+                </div>
+                <div class="mt-4 small text-secondary">
+                    Built with HTML5, Bootstrap 5, vanilla JavaScript, and Axios.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('cloudvault_theme') || 'light');
+    </script>
+</body>
+</html>

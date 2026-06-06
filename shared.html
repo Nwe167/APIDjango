@@ -1,0 +1,208 @@
+{% load static %}
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shared - Cloud Storage</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+<style>
+body{background:#f8f9fa;font-family:'Manrope',sans-serif}
+.sidebar{width:260px;height:100vh;position:fixed;top:0;left:0;background:#fff;border-right:1px solid #e5e7eb;overflow-y:auto;padding:20px}
+.main{margin-left:260px;padding:30px}
+.nav-item a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#374151;text-decoration:none;margin-bottom:4px}
+.nav-item a.active,.nav-item a:hover{background:#eff6ff;color:#2563eb}
+</style>
+</head><body>
+<div class="sidebar">
+  <div class="d-flex align-items-center gap-2 mb-4 fw-bold fs-5"><i class="bi bi-cloud text-primary fs-4"></i> Drive</div>
+  <ul class="nav-item list-unstyled">
+    <li><a href="/frontend/dashboard/"><i class="bi bi-house-fill"></i>My Drive</a></li>
+    <li><a href="/frontend/files/"><i class="bi bi-file-earmark"></i>Files</a></li>
+    <li><a href="/frontend/shared/" class="active"><i class="bi bi-share"></i>Shared</a></li>
+    <li><a href="/frontend/trash/"><i class="bi bi-trash3"></i>Trash</a></li>
+    <li><a href="/frontend/activity/"><i class="bi bi-activity"></i>Activity</a></li>
+    <li><a href="/frontend/profile/"><i class="bi bi-person-circle"></i>Profile</a></li>
+    <li><a href="/frontend/settings/"><i class="bi bi-gear"></i>Settings</a></li>
+  </ul>
+</div>
+
+<div class="main">
+  <h4 class="fw-bold mb-1"><i class="bi bi-share me-2 text-primary"></i>Shared with me</h4>
+  <p class="text-muted mb-4">Files and folders others have shared with you.</p>
+  <div id="sharedAlert" class="mb-3"></div>
+
+  <!-- Tabs: Shared with me / My shared files -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><button class="nav-link active" id="tabSharedWithMe" onclick="switchTab('with-me')">Shared with me</button></li>
+    <li class="nav-item"><button class="nav-link" id="tabMyShared" onclick="switchTab('my-shared')">Files I shared</button></li>
+  </ul>
+
+  <!-- Shared with me -->
+  <div id="panelWithMe">
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Name</th><th>Shared by</th><th>Access</th><th>Size</th><th>Modified</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody id="sharedWithMeBody"><tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Files I shared -->
+  <div id="panelMyShared" style="display:none">
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>File</th><th>Shared with</th><th>Access level</th><th>Shared on</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody id="mySharedBody"><tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalLabel">Preview</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="previewModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/api.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+<script>
+const tok = () => localStorage.getItem('cloudvault_token') || localStorage.getItem('auth_token') || '';
+const hdr = () => ({ Authorization: `Token ${tok()}` });
+if(!tok()) window.location.href = '/frontend/login/';
+
+function fmt(bytes){if(!bytes||bytes<=0)return'—';const u=['B','KB','MB','GB'];let v=bytes,i=0;while(v>=1024&&i<u.length-1){v/=1024;i++;}return`${v.toFixed(i?1:0)} ${u[i]}`;}
+function fmtDate(v){if(!v)return'—';return new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date(v));}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function roleLabel(r){return{reader:'Can view',commenter:'Can comment',writer:'Can edit',owner:'Owner'}[r]||r;}
+function fileIcon(mime){
+  if(!mime)return'bi-file-earmark';
+  if(mime==='folder')return'bi-folder-fill text-warning';
+  if(mime.startsWith('image/'))return'bi-file-earmark-image text-info';
+  if(mime.includes('pdf'))return'bi-file-earmark-pdf text-danger';
+  if(mime.startsWith('text/'))return'bi-file-earmark-text';
+  return'bi-file-earmark';
+}
+
+function showToast(msg, type='success'){
+  let c=document.getElementById('tc');
+  if(!c){c=document.createElement('div');c.id='tc';c.className='toast-container position-fixed top-0 end-0 p-3';document.body.appendChild(c);}
+  const id='t'+Date.now();
+  c.insertAdjacentHTML('beforeend',`<div id="${id}" class="toast align-items-center text-bg-${type} border-0"><div class="d-flex"><div class="toast-body">${esc(msg)}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`);
+  const el=document.getElementById(id);new bootstrap.Toast(el,{delay:3500}).show();el.addEventListener('hidden.bs.toast',()=>el.remove());
+}
+
+function switchTab(tab) {
+  document.getElementById('panelWithMe').style.display = tab==='with-me'?'':'none';
+  document.getElementById('panelMyShared').style.display = tab==='my-shared'?'':'none';
+  document.getElementById('tabSharedWithMe').classList.toggle('active', tab==='with-me');
+  document.getElementById('tabMyShared').classList.toggle('active', tab==='my-shared');
+}
+
+async function loadSharedWithMe(){
+  const tbody = document.getElementById('sharedWithMeBody');
+  try {
+    // Files where I have a Permission record as grantee
+    const r = await axios.get('/api/v1/files/', { headers: hdr() });
+    const all = r.data.results || r.data || [];
+    // Files not owned by me that I have access to = shared with me
+    const meR = await axios.get('/api/v1/users/profile/me/', { headers: hdr() }).catch(()=>null);
+    const myId = meR?.data?.user?.id;
+    const sharedWithMe = all.filter(f => f.owner !== myId && f.owner_id !== myId);
+
+    if(!sharedWithMe.length){
+      tbody.innerHTML='<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-share d-block mb-2" style="font-size:2.5rem"></i>No files shared with you yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = sharedWithMe.map(f=>`
+    <tr>
+      <td><div class="d-flex align-items-center gap-2">
+        <i class="bi ${fileIcon(f.mime_type)}" style="font-size:1.2rem"></i>
+        <span class="fw-semibold">${esc(f.name)}</span></div></td>
+      <td><small>${esc(f.owner_email||'—')}</small></td>
+      <td><span class="badge bg-primary">${esc(f.sharing_role||'Viewer')}</span></td>
+      <td>${fmt(f.size_bytes)}</td>
+      <td><small>${fmtDate(f.modified_time)}</small></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="previewShared('${f.id}','${esc(f.mime_type||'')}','${esc(f.name)}')"><i class="bi bi-eye"></i></button>
+        <a class="btn btn-sm btn-outline-primary" href="/api/v1/files/${f.id}/download/" target="_blank"><i class="bi bi-download"></i></a>
+      </td>
+    </tr>`).join('');
+  } catch(e){
+    tbody.innerHTML=`<tr><td colspan="6" class="text-center py-4 text-danger">Failed to load: ${esc(e.response?.data?.detail||e.message)}</td></tr>`;
+  }
+}
+
+async function loadMyShared(){
+  const tbody = document.getElementById('mySharedBody');
+  try {
+    const r = await axios.get('/api/v1/permissions/', { headers: hdr() });
+    const perms = r.data.results || r.data || [];
+    if(!perms.length){
+      tbody.innerHTML='<tr><td colspan="5" class="text-center py-5 text-muted"><i class="bi bi-share d-block mb-2" style="font-size:2.5rem"></i>You haven\'t shared any files yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = perms.map(p=>`
+    <tr>
+      <td><span class="fw-semibold">${esc(p.file_name||p.file||'—')}</span></td>
+      <td><small>${esc(p.grantee_email||p.grantee_user_display||'—')}</small></td>
+      <td><span class="badge bg-info text-dark">${esc(roleLabel(p.role))}</span></td>
+      <td><small>${fmtDate(p.created_at)}</small></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-danger" onclick="removePermission('${p.id}','${esc(p.grantee_email||'')}')"><i class="bi bi-x-circle me-1"></i>Remove</button>
+      </td>
+    </tr>`).join('');
+  } catch(e){
+    tbody.innerHTML=`<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load: ${esc(e.response?.data?.detail||e.message)}</td></tr>`;
+  }
+}
+
+async function removePermission(permId, email){
+  if(!confirm(`Remove access for ${email}?`)) return;
+  try {
+    await axios.delete(`/api/v1/permissions/${permId}/`, { headers: hdr() });
+    showToast('Access removed', 'success');
+    loadMyShared();
+  } catch(e){ showToast('Failed: '+(e.response?.data?.detail||e.message), 'danger'); }
+}
+
+async function previewShared(id, mime, name){
+  const modal = document.getElementById('previewModal');
+  const body = document.getElementById('previewModalBody');
+  document.getElementById('previewModalLabel').textContent = name;
+  body.innerHTML='<div class="text-center py-5"><div class="spinner-border"></div></div>';
+  new bootstrap.Modal(modal).show();
+  try {
+    const r = await fetch(`/api/v1/files/${id}/preview/`, { headers: hdr() });
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const m = (mime||'').toLowerCase();
+    if(m.startsWith('image/')) body.innerHTML=`<img src="${url}" class="img-fluid d-block mx-auto" style="max-height:75vh">`;
+    else if(m.includes('pdf')) body.innerHTML=`<iframe src="${url}" style="width:100%;height:75vh;border:none"></iframe>`;
+    else if(m.startsWith('video/')) body.innerHTML=`<video controls class="w-100"><source src="${url}" type="${mime}"></video>`;
+    else body.innerHTML=`<div class="text-center py-4"><a class="btn btn-primary" href="/api/v1/files/${id}/download/" target="_blank"><i class="bi bi-download me-1"></i>Download</a></div>`;
+  } catch(e){ body.innerHTML=`<div class="text-center py-4 text-danger">Preview failed.</div>`; }
+}
+
+loadSharedWithMe();
+loadMyShared();
+</script>
+</body></html>

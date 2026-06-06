@@ -1,0 +1,161 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications - Cloud Storage</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+  <style>
+    .notif-row{padding:16px;border-bottom:1px solid #e5e7eb;transition:background .15s}
+    .notif-row:hover{background:#f9fafb}
+    .notif-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0;margin-top:6px}
+  </style>
+</head>
+<body>
+<div class="d-flex" style="height:100vh">
+  <!-- Sidebar -->
+  <nav class="sidebar bg-light border-end" style="width:280px;overflow-y:auto;flex-shrink:0">
+    <div class="p-4">
+      <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white p-2 rounded" style="font-size:1.5rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center">
+          <i class="bi bi-cloud"></i>
+        </div>
+        <span class="ms-2 fw-bold" style="font-size:1.1rem">Drive</span>
+      </div>
+      <button class="btn btn-primary w-100 mb-4" onclick="window.location.href='/frontend/files/'">
+        <i class="bi bi-plus-lg"></i> Upload File
+      </button>
+      <div class="nav flex-column nav-pills gap-2">
+        <a href="/frontend/dashboard/" class="nav-link d-flex align-items-center" data-page="dashboard"><i class="bi bi-house-fill me-3"></i><span>My Drive</span></a>
+        <a href="/frontend/files/" class="nav-link d-flex align-items-center" data-page="files"><i class="bi bi-file-earmark me-3"></i><span>Files</span></a>
+        <a href="/frontend/folders/" class="nav-link d-flex align-items-center" data-page="folders"><i class="bi bi-folder me-3"></i><span>Folders</span></a>
+        <a href="/frontend/shared/" class="nav-link d-flex align-items-center" data-page="shared"><i class="bi bi-share me-3"></i><span>Shared</span></a>
+        <a href="/frontend/trash/" class="nav-link d-flex align-items-center" data-page="trash"><i class="bi bi-trash me-3"></i><span>Trash</span></a>
+        <hr class="my-3" />
+        <a href="/frontend/activity/" class="nav-link d-flex align-items-center" data-page="activity"><i class="bi bi-activity me-3"></i><span>Activity</span></a>
+        <a href="/frontend/notifications/" class="nav-link active d-flex align-items-center" data-page="notifications"><i class="bi bi-bell me-3"></i><span>Notifications</span></a>
+        <a href="/frontend/settings/" class="nav-link d-flex align-items-center" data-page="settings"><i class="bi bi-gear me-3"></i><span>Settings</span></a>
+        <a href="/frontend/profile/" class="nav-link d-flex align-items-center" data-page="profile"><i class="bi bi-person me-3"></i><span>Profile</span></a>
+        <a href="/frontend/api/" class="nav-link d-flex align-items-center" data-page="api"><i class="bi bi-code-square me-3"></i><span>File API</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="flex-grow-1 d-flex flex-column" style="overflow:hidden">
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+      <div class="container-fluid px-4">
+        <div class="d-flex align-items-center flex-grow-1">
+          <span class="fw-semibold text-muted">Notifications</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-link" id="themeToggle" title="Toggle dark mode">
+            <i class="bi bi-moon" id="themeIcon" style="font-size:1.2rem;color:#333"></i>
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-link dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle" style="font-size:1.3rem;color:#333"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/frontend/profile/">Profile</a></li>
+              <li><a class="dropdown-item" href="/frontend/settings/">Settings</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" id="logoutBtn" href="#">Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 overflow-auto">
+      <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold mb-1"><i class="bi bi-bell me-2 text-primary"></i>Notifications</h5>
+            <p class="text-muted mb-0 small" id="unreadInfo">Loading...</p>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" id="markAllBtn"><i class="bi bi-check-all me-1"></i>Mark all read</button>
+        </div>
+        <div class="card shadow-sm">
+          <div id="notifList">
+            <div class="text-center py-5 text-muted"><div class="spinner-border mb-2"></div><div>Loading notifications...</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/api.js' %}"></script>
+<script>
+const tok=()=>localStorage.getItem('cloudvault_token')||localStorage.getItem('auth_token')||'';
+const hdr=()=>({Authorization:`Token ${tok()}`});
+if(!tok())window.location.href='/frontend/login/';
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtDate(v){if(!v)return'—';return new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date(v));}
+function shareStatusBadge(n){
+  if(n.notification_type!=='share_received')return'';
+  const map={pending:'<span class="badge bg-warning text-dark">Pending</span>',accepted:'<span class="badge bg-success">Accepted</span>',declined:'<span class="badge bg-secondary">Cleared</span>'};
+  return map[n.share_status]||'';
+}
+
+async function loadNotifications(){
+  const list=document.getElementById('notifList');
+  try {
+    const r=await axios.get('/api/v1/users/notifications/',{headers:hdr()});
+    const items=r.data.results||r.data||[];
+    const unread=items.filter(n=>!n.is_read).length;
+    document.getElementById('unreadInfo').textContent=`${unread} unread of ${items.length} total`;
+    if(!items.length){list.innerHTML='<div class="text-center py-5 text-muted"><i class="bi bi-bell d-block mb-2" style="font-size:2.5rem"></i>No notifications yet.</div>';return;}
+    list.innerHTML=items.map(n=>{
+      const isPending=n.notification_type==='share_received'&&n.share_status==='pending';
+      return `<div class="notif-row d-flex gap-3 align-items-start ${n.is_read?'':'bg-light'}" style="cursor:pointer" onclick="markRead('${n.id}',this)">
+        ${!n.is_read?'<div class="notif-dot mt-1"></div>':'<div style="width:8px;flex-shrink:0"></div>'}
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="fw-semibold">${esc(n.title||'Notification')}</div>${shareStatusBadge(n)}
+          </div>
+          <div class="text-muted small">${esc(n.body||n.message||'')}</div>
+          <small class="text-muted">${fmtDate(n.created_at)}</small>
+          <div class="d-flex gap-2 mt-2">
+            ${isPending?`
+              <button class="btn btn-sm btn-success" onclick="event.stopPropagation();acceptShare('${n.id}')">Confirm</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();declineShare('${n.id}')">Clear</button>
+            `:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){list.innerHTML=`<div class="text-center py-4 text-danger">Failed to load: ${esc(e.response?.data?.detail||e.message)}</div>`;}
+}
+
+async function acceptShare(id){
+  try{await axios.post(`/api/v1/users/notifications/${id}/accept_share/`,{},{headers:hdr()});loadNotifications();}
+  catch(e){alert('Failed: '+(e.response?.data?.detail||e.message));}
+}
+async function declineShare(id){
+  try{await axios.post(`/api/v1/users/notifications/${id}/decline_share/`,{},{headers:hdr()});loadNotifications();}
+  catch(e){alert('Failed: '+(e.response?.data?.detail||e.message));}
+}
+async function markRead(id,row){
+  try{await axios.post(`/api/v1/users/notifications/${id}/mark_as_read/`,{},{headers:hdr()});row.classList.remove('bg-light');const dot=row.querySelector('.notif-dot');if(dot)dot.style.visibility='hidden';}catch(e){}
+}
+
+document.getElementById('markAllBtn').onclick=async()=>{
+  try{await axios.post('/api/v1/users/notifications/mark_all_as_read/',{},{headers:hdr()});loadNotifications();}
+  catch(e){alert('Failed: '+e.message);}
+};
+document.getElementById('logoutBtn').addEventListener('click',e=>{e.preventDefault();localStorage.clear();window.location.href='/frontend/login/';});
+document.getElementById('themeToggle').addEventListener('click',()=>{const d=document.body.classList.toggle('dark-mode');localStorage.setItem('theme',d?'dark':'light');document.getElementById('themeIcon').className=d?'bi bi-sun':'bi bi-moon';});
+loadNotifications();
+</script>
+</body>
+</html>

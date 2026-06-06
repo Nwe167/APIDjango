@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard | CloudVault</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/dashboard.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="sidebarSlot"></div>
+    <div class="app-content">
+      <div id="navbarSlot"></div>
+      <main class="app-main">
+        <section class="dashboard-hero mb-4">
+          <div
+            class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3"
+          >
+            <div>
+              <div class="stat-pill mb-3">
+                <i class="bi bi-stars"></i> Workspace overview
+              </div>
+              <h1 class="fw-black mb-2">Your cloud drive at a glance</h1>
+              <p class="section-subtitle mb-0">
+                Monitor storage, activity, recent files, and saved searches from
+                one fast dashboard.
+              </p>
+            </div>
+            <div class="storage-ring" style="--progress: 0">
+              <div class="storage-ring-inner" id="dashboardStoragePercent">
+                0%
+              </div>
+            </div>
+          </div>
+          <div class="progress mt-4">
+            <div
+              class="progress-bar"
+              id="dashboardStorageBar"
+              style="width: 0%"
+            ></div>
+          </div>
+        </section>
+
+        <section class="row g-3 mb-4" id="dashboardMetrics"></section>
+
+        <section class="chart-shell mb-4">
+          <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <div class="section-title">Quick search</div>
+                <p class="section-subtitle mb-0">
+                  Search files and folders without leaving the dashboard.
+                </p>
+              </div>
+              <i class="bi bi-search fs-4 text-primary"></i>
+            </div>
+            <input
+              id="dashboardQuickSearch"
+              class="form-control form-control-lg mb-3"
+              placeholder="Search files, folders, and names"
+            />
+            <div id="quickSearchResults" class="list-group"></div>
+          </div>
+
+          <div class="content-card">
+            <div class="section-title mb-1">Storage chart</div>
+            <p class="section-subtitle mb-3">
+              Files by type in your workspace.
+            </p>
+            <div class="mini-bar-chart" id="storageChart"></div>
+          </div>
+        </section>
+
+        <section class="row g-3 mb-4">
+          <div class="col-12 col-xl-7">
+            <div class="content-card h-100">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <div>
+                  <div class="section-title">Recent files</div>
+                  <p class="section-subtitle mb-0">Latest uploads and edits.</p>
+                </div>
+                <a href="files.html" class="fw-bold text-primary">View all</a>
+              </div>
+              <div
+                id="recentFilesList"
+                class="list-group list-group-flush"
+              ></div>
+            </div>
+          </div>
+          <div class="col-12 col-xl-5">
+            <div class="content-card h-100">
+              <div class="section-title mb-1">Saved searches</div>
+              <p class="section-subtitle mb-3">
+                Reusable filters for quick access.
+              </p>
+              <div id="savedSearchesList"></div>
+              <hr />
+              <div class="section-title mb-1">Recent search history</div>
+              <div id="searchHistoryList"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="row g-3">
+          <div class="col-12 col-xl-7">
+            <div class="timeline-card content-card h-100">
+              <div class="section-title mb-1">Activity timeline</div>
+              <p class="section-subtitle mb-3">
+                Recent file activity, shares, comments, and restores.
+              </p>
+              <div id="activityTimeline" class="timeline-line"></div>
+            </div>
+          </div>
+          <div class="col-12 col-xl-5">
+            <div class="dashboard-sidebar-stack h-100 d-grid gap-3">
+              <div class="content-card h-100">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-3"
+                >
+                  <div>
+                    <div class="section-title mb-1">Recent comments</div>
+                    <p class="section-subtitle mb-0">
+                      Latest comments and replies on files you can access.
+                    </p>
+                  </div>
+                  <i class="bi bi-chat-left-text fs-4 text-primary"></i>
+                </div>
+                <div id="recentCommentsList"></div>
+              </div>
+
+              <div class="content-card h-100">
+                <div class="section-title mb-1">Workspace tips</div>
+                <ul class="text-secondary mb-0 ps-3">
+                  <li>
+                    Use the sidebar to move between files, folders, trash, and
+                    security.
+                  </li>
+                  <li>Drag files onto the upload zone on the files page.</li>
+                  <li>Toggle dark mode from the top navbar.</li>
+                  <li>Use share links for external access where allowed.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>

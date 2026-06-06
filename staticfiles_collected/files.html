@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Files | CloudVault</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <div id="sidebarSlot"></div>
+    <div class="app-content">
+        <div id="navbarSlot"></div>
+        <main class="app-main">
+            <div id="filesAlert" class="mb-3"></div>
+            <section class="dashboard-hero mb-4">
+                <div class="d-flex flex-column flex-xl-row gap-3 align-items-xl-center justify-content-between">
+                    <div>
+                        <div class="stat-pill mb-3"><i class="bi bi-folder2-open"></i> File manager</div>
+                        <h1 class="fw-black mb-2">Organize files, folders, and sharing</h1>
+                        <p class="section-subtitle mb-0">Table, grid, and list views with upload, preview, search, and breadcrumb navigation.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary rounded-4" id="createFolderBtn"><i class="bi bi-folder-plus me-2"></i>New folder</button>
+                        <label class="btn btn-outline-primary rounded-4 mb-0">
+                            <i class="bi bi-cloud-arrow-up me-2"></i>Upload
+                            <input type="file" id="fileUploadInput" class="d-none" multiple>
+                        </label>
+                    </div>
+                </div>
+                <div class="progress mt-4"><div id="uploadProgress" class="progress-bar" style="width:0%"></div></div>
+                <div id="uploadDropzone" class="dropzone mt-3">
+                    <div class="fw-bold mb-1">Drag and drop files here</div>
+                    <p class="mb-0 text-secondary">Supports multi-file upload and local server storage.</p>
+                </div>
+            </section>
+
+            <section class="row g-3">
+                <div class="col-12 col-xl-3">
+                    <div class="content-card h-100">
+                        <div class="section-title mb-2">Folder tree</div>
+                        <div id="folderTree" class="folder-tree"></div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-9">
+                    <div class="content-card mb-3">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-2" id="breadcrumbNav">
+                                <li class="breadcrumb-item active">My Drive</li>
+                            </ol>
+                        </nav>
+                        <div class="d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between">
+                            <div>
+                                <div class="section-title mb-1">Your files</div>
+                                <p class="section-subtitle mb-0" id="filesTotalCount">0 items</p>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap toolbar-sticky">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input class="form-control" id="fileSearchInput" placeholder="Search files">
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary active" type="button" data-view-toggle="table"><i class="bi bi-table"></i></button>
+                                    <button class="btn btn-outline-primary" type="button" data-view-toggle="grid"><i class="bi bi-grid-3x3-gap"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="folderDetailPanel" class="mb-3"></div>
+
+                    <div id="tableViewWrap" class="content-card">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Size</th>
+                                        <th>Owner</th>
+                                        <th>Status</th>
+                                        <th>Starred</th>
+                                        <th>Modified</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="filesTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="gridViewWrap" class="d-none">
+                        <div id="filesGrid" class="file-grid"></div>
+                    </div>
+
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center mb-0" id="filesPagination"></ul>
+                    </nav>
+                </div>
+            </section>
+
+            <section class="row g-3 mt-1">
+                <div class="col-12 col-xl-7">
+                    <div class="content-card">
+                        <div class="section-title mb-1">Comment sidebar</div>
+                        <p class="section-subtitle mb-3">Comments for the selected file appear here.</p>
+                        <div id="commentSidebar"></div>
+                        <form class="mt-3" id="commentForm">
+                            <label class="form-label">Add comment</label>
+                            <textarea class="form-control mb-3" name="commentContent" rows="3" placeholder="Write a comment..."></textarea>
+                            <button class="btn btn-primary" type="submit">Post comment</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-5">
+                    <div class="content-card">
+                        <div class="section-title mb-1">Preview notes</div>
+                        <p class="section-subtitle">Use the preview modal for images and PDFs. Other file types display file metadata and available actions.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="previewModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shareModalLabel">Share file</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="shareModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="shareSaveBtn">Save sharing</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/comments.js"></script>
+    <script src="js/files.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const observer = new MutationObserver(() => {
+                const fileCards = document.querySelectorAll('[data-file-id]');
+                if (fileCards.length && window.CloudVaultComments && window.location.search.includes('file=')) {
+                    const fileId = new URLSearchParams(window.location.search).get('file');
+                    window.CloudVaultComments.initializeCommentSidebar(fileId);
+                    window.CloudVaultComments.bindCommentComposer(fileId);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
+</body>
+</html>

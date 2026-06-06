@@ -1,0 +1,204 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - Cloud Storage</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+  <style>.avatar-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff}</style>
+</head>
+<body>
+<div class="d-flex" style="height:100vh">
+  <!-- Sidebar -->
+  <nav class="sidebar bg-light border-end" style="width:280px;overflow-y:auto;flex-shrink:0">
+    <div class="p-4">
+      <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white p-2 rounded" style="font-size:1.5rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center">
+          <i class="bi bi-cloud"></i>
+        </div>
+        <span class="ms-2 fw-bold" style="font-size:1.1rem">Drive</span>
+      </div>
+      <button class="btn btn-primary w-100 mb-4" onclick="window.location.href='/frontend/files/'">
+        <i class="bi bi-plus-lg"></i> Upload File
+      </button>
+      <div class="nav flex-column nav-pills gap-2">
+        <a href="/frontend/dashboard/" class="nav-link d-flex align-items-center" data-page="dashboard"><i class="bi bi-house-fill me-3"></i><span>My Drive</span></a>
+        <a href="/frontend/files/" class="nav-link d-flex align-items-center" data-page="files"><i class="bi bi-file-earmark me-3"></i><span>Files</span></a>
+        <a href="/frontend/folders/" class="nav-link d-flex align-items-center" data-page="folders"><i class="bi bi-folder me-3"></i><span>Folders</span></a>
+        <a href="/frontend/shared/" class="nav-link d-flex align-items-center" data-page="shared"><i class="bi bi-share me-3"></i><span>Shared</span></a>
+        <a href="/frontend/trash/" class="nav-link d-flex align-items-center" data-page="trash"><i class="bi bi-trash me-3"></i><span>Trash</span></a>
+        <hr class="my-3" />
+        <a href="/frontend/activity/" class="nav-link d-flex align-items-center" data-page="activity"><i class="bi bi-activity me-3"></i><span>Activity</span></a>
+        <a href="/frontend/notifications/" class="nav-link d-flex align-items-center" data-page="notifications"><i class="bi bi-bell me-3"></i><span>Notifications</span></a>
+        <a href="/frontend/settings/" class="nav-link d-flex align-items-center" data-page="settings"><i class="bi bi-gear me-3"></i><span>Settings</span></a>
+        <a href="/frontend/profile/" class="nav-link active d-flex align-items-center" data-page="profile"><i class="bi bi-person me-3"></i><span>Profile</span></a>
+        <a href="/frontend/api/" class="nav-link d-flex align-items-center" data-page="api"><i class="bi bi-code-square me-3"></i><span>File API</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="flex-grow-1 d-flex flex-column" style="overflow:hidden">
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+      <div class="container-fluid px-4">
+        <div class="d-flex align-items-center flex-grow-1">
+          <span class="fw-semibold text-muted">Profile</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-link" id="themeToggle" title="Toggle dark mode">
+            <i class="bi bi-moon" id="themeIcon" style="font-size:1.2rem;color:#333"></i>
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-link dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle" style="font-size:1.3rem;color:#333"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/frontend/profile/">Profile</a></li>
+              <li><a class="dropdown-item" href="/frontend/settings/">Settings</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" id="logoutBtn" href="#">Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 overflow-auto">
+      <div class="container-fluid p-4">
+        <h5 class="fw-bold mb-1">My Profile</h5>
+        <p class="text-muted mb-4 small">View and update your account information.</p>
+        <div id="profileAlert" class="mb-3"></div>
+
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="card shadow-sm">
+              <div class="card-body text-center p-4">
+                <div class="avatar-circle mx-auto mb-3" id="profileAvatar">U</div>
+                <h5 class="fw-bold mb-1" id="profileDisplayName">Loading...</h5>
+                <p class="text-muted small mb-2" id="profileEmail">—</p>
+                <span class="badge bg-primary" id="profileRole">User</span>
+                <hr>
+                <div class="text-start">
+                  <div class="d-flex justify-content-between mb-2"><small class="text-muted">Files</small><small id="profileFileCount" class="fw-bold">—</small></div>
+                  <div class="d-flex justify-content-between mb-2"><small class="text-muted">Joined</small><small id="profileJoined" class="fw-bold">—</small></div>
+                  <div class="d-flex justify-content-between"><small class="text-muted">Last login</small><small id="profileLastLogin" class="fw-bold">—</small></div>
+                </div>
+                <hr>
+                <div class="mb-1 d-flex justify-content-between"><small class="text-muted">Storage</small><small id="profileStoragePct" class="fw-bold">0%</small></div>
+                <div class="progress" style="height:6px"><div class="progress-bar" id="profileStorageBar" style="width:0%"></div></div>
+                <small class="text-muted" id="profileStorageText">Loading...</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+              <div class="card-header bg-white fw-bold">Account Information</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label">First name</label><input class="form-control" id="firstName" placeholder="First name"></div>
+                  <div class="col-md-6"><label class="form-label">Last name</label><input class="form-control" id="lastName" placeholder="Last name"></div>
+                  <div class="col-12"><label class="form-label">Username</label><input class="form-control" id="usernameField" placeholder="Username" readonly></div>
+                  <div class="col-12"><label class="form-label">Email</label><input class="form-control" id="emailField" type="email" placeholder="Email"></div>
+                  <div class="col-12"><button class="btn btn-primary" id="saveProfileBtn"><i class="bi bi-check-circle me-1"></i>Save changes</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="card shadow-sm">
+              <div class="card-header bg-white fw-bold">Change Password</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12"><label class="form-label">New password</label><input class="form-control" id="newPassword" type="password" placeholder="New password (min 8 chars)"></div>
+                  <div class="col-12"><label class="form-label">Confirm new password</label><input class="form-control" id="confirmPassword" type="password" placeholder="Confirm new password"></div>
+                  <div class="col-12"><button class="btn btn-warning" id="changePasswordBtn"><i class="bi bi-shield-lock me-1"></i>Change password</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/api.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+<script>
+const tok=()=>localStorage.getItem('cloudvault_token')||localStorage.getItem('auth_token')||'';
+const hdr=()=>({Authorization:`Token ${tok()}`});
+if(!tok())window.location.href='/frontend/login/';
+function fmt(b){if(!b||b<=0)return'0 B';const u=['B','KB','MB','GB'];let v=b,i=0;while(v>=1024&&i<u.length-1){v/=1024;i++;}return`${v.toFixed(i?1:0)} ${u[i]}`;}
+function fmtDate(v){if(!v)return'—';return new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date(v));}
+function showAlert(msg,type='success'){document.getElementById('profileAlert').innerHTML=`<div class="alert alert-${type} alert-dismissible fade show">${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;}
+
+async function loadProfile(){
+  try {
+    const [profR,filesR,quotaR]=await Promise.allSettled([
+      axios.get('/api/v1/users/profile/me/',{headers:hdr()}),
+      axios.get('/api/v1/files/',{headers:hdr()}),
+      axios.get('/api/v1/storage/quota/',{headers:hdr()}),
+    ]);
+    const prof=profR.status==='fulfilled'?profR.value.data:null;
+    const files=filesR.status==='fulfilled'?(filesR.value.data.results||filesR.value.data||[]):[];
+    const quota=quotaR.status==='fulfilled'?quotaR.value.data:null;
+    if(prof){
+      const u=prof.user||{};
+      const first=u.first_name||'',last=u.last_name||'';
+      const display=(first+' '+last).trim()||u.username||'User';
+      const initials=display.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase()||'U';
+      document.getElementById('profileAvatar').textContent=initials;
+      document.getElementById('profileDisplayName').textContent=display;
+      document.getElementById('profileEmail').textContent=u.email||'—';
+      document.getElementById('profileRole').textContent=u.is_staff?'Admin':'User';
+      document.getElementById('profileJoined').textContent=fmtDate(u.date_joined);
+      document.getElementById('profileLastLogin').textContent=fmtDate(u.last_login);
+      document.getElementById('firstName').value=first;
+      document.getElementById('lastName').value=last;
+      document.getElementById('usernameField').value=u.username||'';
+      document.getElementById('emailField').value=u.email||'';
+    }
+    document.getElementById('profileFileCount').textContent=files.length;
+    if(quota){
+      const pct=quota.percent_used;
+      document.getElementById('profileStoragePct').textContent=pct+'%';
+      const bar=document.getElementById('profileStorageBar');
+      bar.style.width=pct+'%';
+      bar.className='progress-bar '+(pct>90?'bg-danger':pct>70?'bg-warning':'');
+      document.getElementById('profileStorageText').textContent=`${fmt(quota.usage_bytes)} of ${fmt(quota.limit_bytes)} used`;
+    }
+  } catch(e){showAlert('Failed to load profile: '+e.message,'danger');}
+}
+
+document.getElementById('saveProfileBtn').onclick=async()=>{
+  try{
+    await axios.patch('/api/v1/users/profile/me/',{user:{first_name:document.getElementById('firstName').value,last_name:document.getElementById('lastName').value,email:document.getElementById('emailField').value}},{headers:{...hdr(),'Content-Type':'application/json'}});
+    showAlert('Profile updated!','success');loadProfile();
+  }catch(e){showAlert('Failed: '+(e.response?.data?JSON.stringify(e.response.data):e.message),'danger');}
+};
+
+document.getElementById('changePasswordBtn').onclick=async()=>{
+  const np=document.getElementById('newPassword').value,cp=document.getElementById('confirmPassword').value;
+  if(!np){showAlert('Enter a new password.','warning');return;}
+  if(np.length<8){showAlert('Password must be at least 8 characters.','warning');return;}
+  if(np!==cp){showAlert('Passwords do not match.','danger');return;}
+  try{
+    await axios.patch('/api/v1/users/profile/me/',{user:{password:np}},{headers:{...hdr(),'Content-Type':'application/json'}});
+    showAlert('Password changed. Please log in again.','success');
+    setTimeout(()=>{localStorage.clear();window.location.href='/frontend/login/';},2000);
+  }catch(e){showAlert('Failed: '+(e.response?.data?JSON.stringify(e.response.data):e.message),'danger');}
+};
+
+document.getElementById('logoutBtn').addEventListener('click',e=>{e.preventDefault();localStorage.clear();window.location.href='/frontend/login/';});
+document.getElementById('themeToggle').addEventListener('click',()=>{const d=document.body.classList.toggle('dark-mode');localStorage.setItem('theme',d?'dark':'light');document.getElementById('themeIcon').className=d?'bi bi-sun':'bi bi-moon';});
+loadProfile();
+</script>
+</body>
+</html>
